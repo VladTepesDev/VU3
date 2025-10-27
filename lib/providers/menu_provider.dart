@@ -11,9 +11,13 @@ class MenuProvider extends ChangeNotifier {
   List<MealLog> _mealLogs = [];
 
   MenuProvider(this._storageService) {
-    _loadMenus();
-    _loadMealLogs();
-    _loadActiveMenu();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    await _loadMenus();
+    await _loadMealLogs();
+    await _loadActiveMenu();
   }
 
   List<Menu> get menus => _menus;
@@ -39,13 +43,53 @@ class MenuProvider extends ChangeNotifier {
     
     if (menuId != null) {
       await _loadMenus(); // Ensure menus are loaded
-      _activeMenu = _menus.firstWhere(
+      
+      // Try to find the menu in loaded menus
+      try {
+        _activeMenu = _menus.firstWhere((m) => m.id == menuId);
+        _menuStartDate = startDate;
+        await _generateMealLogsForActiveMenu();
+        notifyListeners();
+      } catch (e) {
+        // Menu not found - it might have been dynamically generated
+        // Will be regenerated when user opens MenusScreen
+        debugPrint('Active menu with ID $menuId not found in storage');
+        // Clear the invalid menu ID
+        await _storageService.saveActiveMenuId(null);
+        await _storageService.saveMenuStartDate(null);
+      }
+    }
+  }
+
+  // Method to regenerate and restore active menu from user profile
+  Future<void> regenerateActiveMenuFromProfile(double targetCalories, String goal) async {
+    final menuId = await _storageService.getActiveMenuId();
+    
+    if (menuId != null && _activeMenu == null) {
+      // We have a saved menu ID but the menu wasn't found
+      // Regenerate the menus and try to restore
+      final generatedMenus = _storageService.generateMenusForUser(targetCalories, goal);
+      
+      // Try to find a menu with matching ID
+      final restoredMenu = generatedMenus.firstWhere(
         (m) => m.id == menuId,
-        orElse: () => _menus.first,
+        orElse: () => generatedMenus.first,
       );
-      _menuStartDate = startDate;
-      await _generateMealLogsForActiveMenu();
-      notifyListeners();
+      
+      if (restoredMenu.id == menuId) {
+        // Perfect match found
+        _activeMenu = restoredMenu;
+        _menuStartDate = await _storageService.getMenuStartDate();
+        
+        // Add to menus list
+        if (!_menus.any((m) => m.id == restoredMenu.id)) {
+          _menus.add(restoredMenu);
+          await _storageService.saveMenus(_menus);
+        }
+        
+        await _generateMealLogsForActiveMenu();
+        notifyListeners();
+      }
     }
   }
 
@@ -86,9 +130,32 @@ class MenuProvider extends ChangeNotifier {
     await _storageService.saveActiveMenuId(menu?.id);
     await _storageService.saveMenuStartDate(_menuStartDate);
     
-    // Clear old meal logs when switching plans
+    // Save the menu to the menus list so it persists across app restarts
+    if (menu != null) {
+      // Check if menu already exists in list
+      final existingIndex = _menus.indexWhere((m) => m.id == menu.id);
+      if (existingIndex == -1) {
+        // Add new menu
+        _menus.add(menu);
+      } else {
+        // Update existing menu
+        _menus[existingIndex] = menu;
+      }
+      await _storageService.saveMenus(_menus);
+    }
+    
+    // When switching plans, only clear TODAY'S meal logs, keep historical data
     if (planChanged && menu != null) {
-      _mealLogs.clear();
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      
+      // Remove only today's logs
+      _mealLogs.removeWhere((log) =>
+        log.scheduledDate.year == todayStart.year &&
+        log.scheduledDate.month == todayStart.month &&
+        log.scheduledDate.day == todayStart.day
+      );
+      
       await _storageService.saveMealLogs(_mealLogs);
     }
     

@@ -5,6 +5,7 @@ import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
+import '../providers/water_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -160,6 +161,23 @@ class ProfileScreen extends StatelessWidget {
                                 color: _getBMIColor(user.bmiCategory),
                                 fontWeight: FontWeight.w600,
                               ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Edit Profile Button
+                          GlassButton(
+                            onPressed: () => Navigator.pushNamed(context, '/edit-profile'),
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.edit, size: 20),
+                                SizedBox(width: 8),
+                                Text('Edit Profile'),
+                              ],
                             ),
                           ),
                         ],
@@ -703,7 +721,7 @@ class ProfileScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
+        height: MediaQuery.of(context).size.height * 0.5,
         margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
@@ -733,20 +751,102 @@ class ProfileScreen extends StatelessWidget {
                   'Notification Settings',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 8),
                 Text(
-                  'Configure your reminders for water intake and meals',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  'Manage your water intake reminders',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textGray,
+                  ),
                 ),
                 const SizedBox(height: 24),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'Notification settings will be available here',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textGray,
+                
+                Consumer<WaterProvider>(
+                  builder: (context, waterProvider, _) {
+                    return GlassContainer(
+                      padding: const EdgeInsets.all(20),
+                      child: Row(
+                        children: [
+                          Icon(Icons.water_drop, color: AppTheme.textBlack, size: 28),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Water Reminders',
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '8 reminders daily (9 AM - 9 PM)',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: AppTheme.textGray,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: waterProvider.waterNotificationsEnabled,
+                            onChanged: (value) async {
+                              await waterProvider.toggleWaterNotifications(value);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      value 
+                                        ? '✓ Water reminders enabled' 
+                                        : '✓ Water reminders disabled'
+                                    ),
+                                    backgroundColor: AppTheme.textBlack,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
+                            activeTrackColor: AppTheme.textBlack.withValues(alpha: 0.5),
+                            thumbColor: WidgetStateProperty.resolveWith((states) {
+                              return states.contains(WidgetState.selected)
+                                  ? AppTheme.textBlack
+                                  : AppTheme.textGray;
+                            }),
+                          ),
+                        ],
                       ),
+                    );
+                  },
+                ),
+                
+                const SizedBox(height: 16),
+                
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF66BB6A).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF66BB6A).withValues(alpha: 0.3),
                     ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: const Color(0xFF66BB6A),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'You\'ll receive 8 gentle reminders throughout the day to stay hydrated',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF66BB6A),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

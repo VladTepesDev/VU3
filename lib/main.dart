@@ -10,6 +10,8 @@ import 'providers/menu_provider.dart';
 import 'providers/water_provider.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/main_navigation.dart';
+import 'screens/edit_profile_screen.dart';
+import 'screens/add_meal_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,11 +38,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final storageService = StorageService();
+    final notificationService = NotificationService();
     
     return MultiProvider(
       providers: [
         Provider<StorageService>.value(value: storageService),
-        Provider<NotificationService>(create: (_) => NotificationService()),
+        Provider<NotificationService>.value(value: notificationService),
         ChangeNotifierProvider(
           create: (_) => UserProvider(storageService),
         ),
@@ -51,7 +54,7 @@ class MyApp extends StatelessWidget {
           create: (_) => MenuProvider(storageService),
         ),
         ChangeNotifierProvider(
-          create: (_) => WaterProvider(),
+          create: (_) => WaterProvider(notificationService),
         ),
       ],
       child: MaterialApp(
@@ -59,6 +62,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         home: const AppInitializer(),
+        routes: {
+          '/edit-profile': (context) => const EditProfileScreen(),
+          '/add-meal': (context) => const AddMealScreen(),
+        },
       ),
     );
   }

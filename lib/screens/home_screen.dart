@@ -24,8 +24,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     // Refresh meal logs when screen loads
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MealProvider>().refreshMealLogs();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
+      await context.read<MealProvider>().refreshMealLogs();
+      
+      if (!mounted) return;
+      
+      // Attempt to restore active menu if it's missing
+      final userProfile = context.read<UserProvider>().userProfile;
+      final menuProvider = context.read<MenuProvider>();
+      
+      if (userProfile != null && menuProvider.activeMenu == null) {
+        await menuProvider.regenerateActiveMenuFromProfile(
+          userProfile.recommendedCalories,
+          userProfile.goal,
+        );
+      }
     });
   }
 
