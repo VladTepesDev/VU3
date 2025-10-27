@@ -24,6 +24,13 @@ class AppTheme {
   static const Color shadowLight = Color(0x1A000000);
   static const Color shadowDark = Color(0x0D000000);
 
+  // Accent colors for statistics and charts
+  static const Color accentOrange = Color(0xFFFF9800);
+  static const Color accentPurple = Color(0xFF9C27B0);
+  static const Color accentBlue = Color(0xFF2196F3);
+  static const Color backgroundDark = Color(0xFF2C2C2C);
+  static const Color backgroundLight = Color(0xFF3A3A3A);
+
   // Pure grayscale gradient
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,

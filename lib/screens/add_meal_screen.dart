@@ -9,7 +9,9 @@ import '../widgets/glass_button.dart';
 import '../widgets/glass_text_field.dart';
 import '../widgets/custom_toast.dart';
 import '../models/meal.dart';
+import '../models/menu.dart';
 import '../providers/meal_provider.dart';
+import '../providers/menu_provider.dart';
 
 class AddMealScreen extends StatefulWidget {
   const AddMealScreen({super.key});
@@ -31,6 +33,28 @@ class _AddMealScreenState extends State<AddMealScreen> {
   String _selectedMealType = 'breakfast';
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
+  MenuMeal? _menuMeal; // Store the menu meal if passed
+  bool _isInitialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    
+    // Get the menu meal argument if passed
+    if (!_isInitialized) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is MenuMeal) {
+        _menuMeal = args;
+        _nameController.text = _menuMeal!.name;
+        _caloriesController.text = _menuMeal!.calories.toStringAsFixed(0);
+        _proteinController.text = _menuMeal!.protein.toStringAsFixed(0);
+        _carbsController.text = _menuMeal!.carbs.toStringAsFixed(0);
+        _fatController.text = _menuMeal!.fat.toStringAsFixed(0);
+        _selectedMealType = _menuMeal!.mealType;
+      }
+      _isInitialized = true;
+    }
+  }
 
   @override
   void dispose() {
@@ -381,6 +405,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
       return;
     }
 
+    // Capture context before async operations
+    final menuProvider = context.read<MenuProvider>();
     final mealProvider = context.read<MealProvider>();
 
     String? imagePath;
@@ -400,41 +426,70 @@ class _AddMealScreenState extends State<AddMealScreen> {
     final fat = _fatController.text.isNotEmpty 
         ? (double.tryParse(_fatController.text) ?? 0.0)
         : 0.0;
-    final weight = _weightController.text.isNotEmpty 
-        ? (double.tryParse(_weightController.text) ?? 0.0)
-        : 0.0;
 
-    final meal = Meal(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _nameController.text,
-      calories: calories,
-      protein: protein,
-      carbs: carbs,
-      fat: fat,
-      weight: weight,
-      imagePath: imagePath,
-      createdAt: DateTime.now(),
-      mealType: _selectedMealType,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-    );
+    String successMessage;
+    
+    // If this is from a menu meal, log it to MenuProvider
+    if (_menuMeal != null) {
+      await menuProvider.logMeal(
+        menuMealId: _menuMeal!.id,
+        calories: calories,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        imagePath: imagePath,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      );
+      
+      await mealProvider.refreshMealLogs();
+      successMessage = '${_menuMeal!.name} logged successfully!';
+    } else {
+      // This is a manual meal, add it normally
+      final weight = _weightController.text.isNotEmpty 
+          ? (double.tryParse(_weightController.text) ?? 0.0)
+          : 0.0;
 
-    await mealProvider.addMeal(meal);
+      final meal = Meal(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: _nameController.text,
+        calories: calories,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        weight: weight,
+        imagePath: imagePath,
+        createdAt: DateTime.now(),
+        mealType: _selectedMealType,
+        notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+      );
 
+      await mealProvider.addMeal(meal);
+      successMessage = 'Meal added successfully!';
+    }
+    
     if (!mounted) return;
     
-    CustomToast.success(context, 'Meal added successfully!');
-
-    // Clear form
-    _nameController.clear();
-    _caloriesController.clear();
-    _proteinController.clear();
-    _carbsController.clear();
-    _fatController.clear();
-    _weightController.clear();
-    _notesController.clear();
-    setState(() {
-      _imageFile = null;
-      _selectedMealType = 'breakfast';
-    });
+    // Show success toast
+    CustomToast.success(context, successMessage);
+    
+    // Check if this screen was pushed (has a route to pop)
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context, successMessage);
+    } else {
+      // This is part of tab navigation - clear the form and reset
+      _nameController.clear();
+      _caloriesController.clear();
+      _proteinController.clear();
+      _carbsController.clear();
+      _fatController.clear();
+      _weightController.clear();
+      _notesController.clear();
+      setState(() {
+        _imageFile = null;
+        _selectedMealType = 'breakfast';
+        _menuMeal = null;
+        _isInitialized = false;
+      });
+    }
   }
 }

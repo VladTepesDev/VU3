@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/menu.dart';
 import '../models/meal_log.dart';
+import '../models/daily_stats.dart';
 import '../services/storage_service.dart';
 
 class MenuProvider extends ChangeNotifier {
@@ -333,6 +334,7 @@ class MenuProvider extends ChangeNotifier {
     }
 
     await _storageService.saveMealLogs(_mealLogs);
+    await _updateDailyStatistics();
     notifyListeners();
   }
   
@@ -346,6 +348,83 @@ class MenuProvider extends ChangeNotifier {
       log.scheduledDate.day == todayStart.day &&
       log.status == MealLogStatus.completed
     ).toList();
+  }
+  
+  /// Check if a meal can be logged based on sequential ordering
+  /// A meal can only be logged if all previous meals (by scheduled time) are completed, missed, or replaced by manual meals
+  bool canLogMeal(String menuMealId, {List<dynamic>? todayManualMeals}) {
+    if (_activeMenu == null) return true; // No restrictions if no active menu
+    
+    final todayMeals = getTodayMenuMeals();
+    if (todayMeals.isEmpty) return true;
+    
+    // Find the meal in today's schedule
+    final mealIndex = todayMeals.indexWhere((m) => m.id == menuMealId);
+    if (mealIndex == -1) return true; // Not in today's schedule, allow
+    
+    // First meal can always be logged
+    if (mealIndex == 0) return true;
+    
+    // Debug: print manual meals
+    debugPrint('=== canLogMeal Debug ===');
+    debugPrint('Checking meal: ${todayMeals[mealIndex].name} (${todayMeals[mealIndex].mealType})');
+    debugPrint('Manual meals count: ${todayManualMeals?.length ?? 0}');
+    if (todayManualMeals != null) {
+      for (var m in todayManualMeals) {
+        debugPrint('  - Manual meal: ${m.name} (${m.mealType})');
+      }
+    }
+    
+    // Get all manual meal types added today
+    final manualMealTypes = todayManualMeals?.map((m) => m.mealType.toLowerCase()).toSet() ?? {};
+    
+    // Check if all previous meals are completed, missed, or replaced by manual meals
+    final today = DateTime.now();
+    for (int i = 0; i < mealIndex; i++) {
+      final previousMeal = todayMeals[i];
+      final log = getMealLog(previousMeal.id, today);
+      final previousMealType = previousMeal.mealType.toLowerCase();
+      
+      debugPrint('Checking previous meal ${i + 1}: ${previousMeal.name} (${previousMeal.mealType})');
+      
+      // Check if this meal slot is satisfied by:
+      // 1. A manual meal of the same type
+      final hasManualMeal = manualMealTypes.contains(previousMealType);
+      
+      // 2. OR the meal log shows completed/missed
+      final isLoggedOrMissed = log != null && 
+          (log.status == MealLogStatus.completed || log.status == MealLogStatus.missed);
+      
+      debugPrint('  - Has manual meal of type: $hasManualMeal');
+      debugPrint('  - Log status: ${log?.status}');
+      debugPrint('  - Is satisfied: ${hasManualMeal || isLoggedOrMissed}');
+      
+      // If this previous meal slot is not satisfied, block the current meal
+      if (!hasManualMeal && !isLoggedOrMissed) {
+        debugPrint('  - BLOCKED! Previous meal not satisfied');
+        return false;
+      }
+    }
+    
+    debugPrint('=== Meal CAN be logged ===');
+    return true;
+  }
+  
+  /// Get the next meal that needs to be logged
+  MenuMeal? getNextMealToLog() {
+    final todayMeals = getTodayMenuMeals();
+    if (todayMeals.isEmpty) return null;
+    
+    final today = DateTime.now();
+    for (var meal in todayMeals) {
+      final log = getMealLog(meal.id, today);
+      if (log == null || 
+          (log.status != MealLogStatus.completed && log.status != MealLogStatus.missed)) {
+        return meal;
+      }
+    }
+    
+    return null; // All meals completed or missed
   }
 
   Map<String, double> getTodayConsumedFromPlan() {
@@ -385,4 +464,91 @@ class MenuProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  // Update daily statistics after logging meals
+  Future<void> _updateDailyStatistics({DateTime? forDate}) async {
+    final date = forDate ?? DateTime.now();
+    final dateStart = DateTime(date.year, date.month, date.day);
+
+    // Get completed plan meals for the day
+    final planLogs = _mealLogs.where((log) =>
+        log.scheduledDate.year == dateStart.year &&
+        log.scheduledDate.month == dateStart.month &&
+        log.scheduledDate.day == dateStart.day &&
+        log.status == MealLogStatus.completed).toList();
+
+    // Convert to MealEntry objects
+    final List<MealEntry> meals = [];
+
+    for (var log in planLogs) {
+      // Try to find the actual meal details from active menu
+      String mealName = 'Plan Meal';
+      String mealType = 'plan';
+      
+      if (_activeMenu != null) {
+        try {
+          final menuMeal = _activeMenu!.meals.firstWhere((m) => m.id == log.menuMealId);
+          mealName = menuMeal.name;
+          mealType = menuMeal.mealType;
+        } catch (e) {
+          // Meal not found in current menu, use defaults
+        }
+      }
+
+      meals.add(MealEntry(
+        id: log.id,
+        name: mealName,
+        type: mealType,
+        calories: log.actualCalories ?? 0,
+        protein: log.actualProtein ?? 0,
+        carbs: log.actualCarbs ?? 0,
+        fat: log.actualFat ?? 0,
+        timestamp: log.loggedAt ?? dateStart,
+        source: 'plan',
+        imagePath: log.imagePath,
+      ));
+    }
+
+    // Calculate totals from plan meals only
+    final totalCalories = meals.fold<double>(0, (sum, m) => sum + m.calories);
+    final totalProtein = meals.fold<double>(0, (sum, m) => sum + m.protein);
+    final totalCarbs = meals.fold<double>(0, (sum, m) => sum + m.carbs);
+    final totalFat = meals.fold<double>(0, (sum, m) => sum + m.fat);
+
+    // Calculate plan adherence
+    double? adherence;
+    if (_activeMenu != null && _menuStartDate != null) {
+      final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+      final daysDifference = dateStart.difference(startDate).inDays;
+      final currentDay = (daysDifference % _activeMenu!.durationDays) + 1;
+      
+      final todayMenuMeals = _activeMenu!.meals
+          .where((meal) => meal.dayNumber == currentDay)
+          .toList();
+      
+      if (todayMenuMeals.isNotEmpty) {
+        final completedCount = planLogs.length;
+        adherence = (completedCount / todayMenuMeals.length * 100).clamp(0.0, 100.0);
+      }
+    }
+
+    // Get existing stats to preserve manual meal data
+    final existingStats = await _storageService.getStatsForDate(dateStart);
+    
+    final stats = DailyStats(
+      id: 'stats_${dateStart.toIso8601String()}',
+      date: dateStart,
+      totalCalories: (existingStats?.totalCalories ?? 0) + totalCalories,
+      totalProtein: (existingStats?.totalProtein ?? 0) + totalProtein,
+      totalCarbs: (existingStats?.totalCarbs ?? 0) + totalCarbs,
+      totalFat: (existingStats?.totalFat ?? 0) + totalFat,
+      manualMealCount: existingStats?.manualMealCount ?? 0,
+      planMealCount: planLogs.length,
+      planAdherence: adherence,
+      meals: [...(existingStats?.meals ?? []), ...meals],
+    );
+
+    await _storageService.addOrUpdateDailyStats(stats);
+  }
 }
+

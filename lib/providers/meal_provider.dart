@@ -1,19 +1,23 @@
 import 'package:flutter/foundation.dart';
 import '../models/meal.dart';
 import '../models/meal_log.dart';
+import '../models/daily_stats.dart';
 import '../services/storage_service.dart';
 
 class MealProvider extends ChangeNotifier {
   final StorageService _storageService;
   List<DailyMeals> _dailyMealsList = [];
   List<MealLog> _mealLogs = [];
+  List<DailyStats> _dailyStats = [];
 
   MealProvider(this._storageService) {
     _loadMeals();
     _loadMealLogs();
+    _loadDailyStats();
   }
 
   List<DailyMeals> get dailyMealsList => _dailyMealsList;
+  List<DailyStats> get dailyStats => _dailyStats;
 
   Future<void> _loadMeals() async {
     _dailyMealsList = await _storageService.getMeals();
@@ -22,6 +26,11 @@ class MealProvider extends ChangeNotifier {
 
   Future<void> _loadMealLogs() async {
     _mealLogs = await _storageService.getMealLogs();
+    notifyListeners();
+  }
+
+  Future<void> _loadDailyStats() async {
+    _dailyStats = await _storageService.getDailyStats();
     notifyListeners();
   }
 
@@ -47,6 +56,7 @@ class MealProvider extends ChangeNotifier {
   Future<void> addMeal(Meal meal) async {
     await _storageService.addMeal(meal);
     await _loadMeals();
+    await updateDailyStatistics();
   }
 
   Future<void> updateMeal(String mealId, Meal updatedMeal) async {
@@ -70,6 +80,7 @@ class MealProvider extends ChangeNotifier {
 
       await _storageService.saveMeals(_dailyMealsList);
       notifyListeners();
+      await updateDailyStatistics();
     }
   }
 
@@ -95,6 +106,7 @@ class MealProvider extends ChangeNotifier {
 
       await _storageService.saveMeals(_dailyMealsList);
       notifyListeners();
+      await updateDailyStatistics();
     }
   }
 
@@ -286,4 +298,121 @@ class MealProvider extends ChangeNotifier {
     
     return streak;
   }
+
+  // Calculate and save daily statistics
+  Future<void> updateDailyStatistics({DateTime? forDate}) async {
+    final date = forDate ?? DateTime.now();
+    final dateStart = DateTime(date.year, date.month, date.day);
+
+    // Get manual meals for the day
+    final manualMeals = _dailyMealsList
+        .where((dm) =>
+            dm.date.year == dateStart.year &&
+            dm.date.month == dateStart.month &&
+            dm.date.day == dateStart.day)
+        .expand((dm) => dm.meals)
+        .toList();
+
+    // Get plan meals for the day
+    final planLogs = _mealLogs.where((log) =>
+        log.scheduledDate.year == dateStart.year &&
+        log.scheduledDate.month == dateStart.month &&
+        log.scheduledDate.day == dateStart.day &&
+        log.status == MealLogStatus.completed).toList();
+
+    // Convert to MealEntry objects
+    final List<MealEntry> meals = [];
+
+    for (var meal in manualMeals) {
+      meals.add(MealEntry(
+        id: meal.id,
+        name: meal.name,
+        type: meal.mealType,
+        calories: meal.calories,
+        protein: meal.protein,
+        carbs: meal.carbs,
+        fat: meal.fat,
+        timestamp: meal.createdAt,
+        source: 'manual',
+        imagePath: meal.imagePath,
+      ));
+    }
+
+    for (var log in planLogs) {
+      meals.add(MealEntry(
+        id: log.id,
+        name: 'Plan Meal', // We'll need to get actual name from menu
+        type: 'plan',
+        calories: log.actualCalories ?? 0,
+        protein: log.actualProtein ?? 0,
+        carbs: log.actualCarbs ?? 0,
+        fat: log.actualFat ?? 0,
+        timestamp: log.loggedAt ?? dateStart,
+        source: 'plan',
+        imagePath: log.imagePath,
+      ));
+    }
+
+    // Calculate totals
+    final totalCalories = meals.fold<double>(0, (sum, m) => sum + m.calories);
+    final totalProtein = meals.fold<double>(0, (sum, m) => sum + m.protein);
+    final totalCarbs = meals.fold<double>(0, (sum, m) => sum + m.carbs);
+    final totalFat = meals.fold<double>(0, (sum, m) => sum + m.fat);
+
+    // Create stats
+    final stats = DailyStats(
+      id: 'stats_${dateStart.toIso8601String()}',
+      date: dateStart,
+      totalCalories: totalCalories,
+      totalProtein: totalProtein,
+      totalCarbs: totalCarbs,
+      totalFat: totalFat,
+      manualMealCount: manualMeals.length,
+      planMealCount: planLogs.length,
+      planAdherence: null, // Will be calculated by MenuProvider
+      meals: meals,
+    );
+
+    await _storageService.addOrUpdateDailyStats(stats);
+    await _loadDailyStats();
+  }
+
+  // Get stats for a specific date
+  DailyStats? getStatsForDate(DateTime date) {
+    final dateStart = DateTime(date.year, date.month, date.day);
+    try {
+      return _dailyStats.firstWhere((s) =>
+          s.date.year == dateStart.year &&
+          s.date.month == dateStart.month &&
+          s.date.day == dateStart.day);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get stats for a date range
+  List<DailyStats> getStatsForRange(DateTime start, DateTime end) {
+    final startDate = DateTime(start.year, start.month, start.day);
+    final endDate = DateTime(end.year, end.month, end.day);
+
+    return _dailyStats
+        .where((s) =>
+            (s.date.isAfter(startDate) || s.date.isAtSameMomentAs(startDate)) &&
+            (s.date.isBefore(endDate) || s.date.isAtSameMomentAs(endDate)))
+        .toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  // Get average calories for a period
+  double getAverageCaloriesForPeriod(int days) {
+    final now = DateTime.now();
+    final startDate = now.subtract(Duration(days: days));
+    final stats = getStatsForRange(startDate, now);
+
+    if (stats.isEmpty) return 0;
+
+    final totalCalories = stats.fold<double>(0, (sum, s) => sum + s.totalCalories);
+    return totalCalories / days; // Divide by actual days, not stats.length
+  }
 }
+

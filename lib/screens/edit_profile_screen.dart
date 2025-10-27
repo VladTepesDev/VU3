@@ -54,16 +54,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppTheme.backgroundGradient,
         ),
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               // App Bar
               Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: [
                     GestureDetector(
@@ -92,26 +94,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               // Form
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  physics: const ClampingScrollPhysics(),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GlassContainer(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Basic Information',
-                                style: Theme.of(context).textTheme.titleLarge,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
                               
                               // Gender
-                              Text('Gender', style: Theme.of(context).textTheme.bodyMedium),
-                              const SizedBox(height: 8),
+                              Text('Gender', style: Theme.of(context).textTheme.bodySmall),
+                              const SizedBox(height: 6),
                               Row(
                                 children: [
                                   Expanded(
@@ -124,15 +127,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ],
                               ),
                               
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
                               
                               // Age
                               TextFormField(
                                 controller: _ageController,
                                 keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 14),
                                 decoration: const InputDecoration(
                                   labelText: 'Age',
                                   suffixText: 'years',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  isDense: true,
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -146,15 +152,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
                               
                               // Height
                               TextFormField(
                                 controller: _heightController,
                                 keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 14),
                                 decoration: const InputDecoration(
                                   labelText: 'Height',
                                   suffixText: 'cm',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  isDense: true,
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -168,15 +177,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
                               
                               // Weight
                               TextFormField(
                                 controller: _weightController,
                                 keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 14),
                                 decoration: const InputDecoration(
                                   labelText: 'Current Weight',
                                   suffixText: 'kg',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  isDense: true,
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -190,15 +202,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
                               
                               // Target Weight
                               TextFormField(
                                 controller: _targetWeightController,
                                 keyboardType: TextInputType.number,
+                                style: const TextStyle(fontSize: 14),
                                 decoration: const InputDecoration(
-                                  labelText: 'Target Weight (Optional)',
+                                  labelText: 'Target Weight',
                                   suffixText: 'kg',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  isDense: true,
                                 ),
                                 validator: (value) {
                                   if (value != null && value.isNotEmpty) {
@@ -216,33 +231,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         
                         const SizedBox(height: 16),
                         
+                        const SizedBox(height: 12),
+                        
                         GlassContainer(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Activity & Goals',
-                                style: Theme.of(context).textTheme.titleLarge,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
                               
                               // Activity Level
-                              Text('Activity Level', style: Theme.of(context).textTheme.bodyMedium),
-                              const SizedBox(height: 8),
+                              Text('Activity Level', style: Theme.of(context).textTheme.bodySmall),
+                              const SizedBox(height: 6),
                               _buildActivityDropdown(),
                               
-                              const SizedBox(height: 20),
+                              const SizedBox(height: 12),
                               
                               // Goal
-                              Text('Your Goal', style: Theme.of(context).textTheme.bodyMedium),
-                              const SizedBox(height: 8),
+                              Text('Your Goal', style: Theme.of(context).textTheme.bodySmall),
+                              const SizedBox(height: 6),
                               _buildGoalDropdown(),
                             ],
                           ),
                         ),
                         
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                         
                         GlassButton(
                           isPrimary: true,
@@ -281,28 +298,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return GestureDetector(
       onTap: () => setState(() => _gender = value),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: isSelected 
               ? AppTheme.textBlack 
               : AppTheme.glassWhite.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppTheme.textBlack : AppTheme.borderGray,
-            width: 2,
+            width: 1.5,
           ),
         ),
         child: Column(
           children: [
             Icon(
               icon,
-              size: 32,
+              size: 24,
               color: isSelected ? AppTheme.textWhite : AppTheme.textBlack,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: isSelected ? AppTheme.textWhite : AppTheme.textBlack,
               ),
@@ -318,14 +336,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       initialValue: _activityLevel,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        isDense: true,
       ),
+      isExpanded: true,
+      style: const TextStyle(fontSize: 13, color: AppTheme.textBlack),
       items: const [
-        DropdownMenuItem(value: 'sedentary', child: Text('Sedentary (little to no exercise)')),
-        DropdownMenuItem(value: 'light', child: Text('Lightly Active (1-3 days/week)')),
-        DropdownMenuItem(value: 'moderate', child: Text('Moderately Active (3-5 days/week)')),
-        DropdownMenuItem(value: 'active', child: Text('Very Active (6-7 days/week)')),
-        DropdownMenuItem(value: 'very_active', child: Text('Extremely Active (physical job)')),
+        DropdownMenuItem(value: 'sedentary', child: Text('Sedentary')),
+        DropdownMenuItem(value: 'light', child: Text('Lightly Active')),
+        DropdownMenuItem(value: 'moderate', child: Text('Moderately Active')),
+        DropdownMenuItem(value: 'active', child: Text('Very Active')),
+        DropdownMenuItem(value: 'very_active', child: Text('Extremely Active')),
       ],
       onChanged: (value) => setState(() => _activityLevel = value),
       validator: (value) {
@@ -342,8 +363,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       initialValue: _goal,
       decoration: const InputDecoration(
         border: OutlineInputBorder(),
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        isDense: true,
       ),
+      isExpanded: true,
+      style: const TextStyle(fontSize: 13, color: AppTheme.textBlack),
       items: const [
         DropdownMenuItem(value: 'lose_weight', child: Text('Lose Weight')),
         DropdownMenuItem(value: 'maintain_weight', child: Text('Maintain Weight')),

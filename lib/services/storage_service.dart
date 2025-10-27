@@ -5,6 +5,7 @@ import '../models/meal.dart';
 import '../models/menu.dart';
 import '../models/meal_log.dart';
 import '../models/notification_settings.dart';
+import '../models/daily_stats.dart';
 
 class StorageService {
   static const String _userProfileKey = 'user_profile';
@@ -15,6 +16,7 @@ class StorageService {
   static const String _isFirstLaunchKey = 'is_first_launch';
   static const String _activeMenuIdKey = 'active_menu_id';
   static const String _menuStartDateKey = 'menu_start_date';
+  static const String _dailyStatsKey = 'daily_stats';
 
   // User Profile
   Future<void> saveUserProfile(UserProfile profile) async {
@@ -442,6 +444,56 @@ class StorageService {
     if (index >= 0) {
       logs[index] = log;
       await saveMealLogs(logs);
+    }
+  }
+
+  // Daily Stats
+  Future<void> saveDailyStats(List<DailyStats> stats) async {
+    final prefs = await SharedPreferences.getInstance();
+    final statsJson = stats.map((stat) => stat.toJson()).toList();
+    await prefs.setString(_dailyStatsKey, jsonEncode(statsJson));
+  }
+
+  Future<List<DailyStats>> getDailyStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_dailyStatsKey);
+    if (jsonString == null) return [];
+    
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+    return jsonList.map((json) => DailyStats.fromJson(json)).toList();
+  }
+
+  Future<void> addOrUpdateDailyStats(DailyStats stats) async {
+    final allStats = await getDailyStats();
+    final dateStart = DateTime(stats.date.year, stats.date.month, stats.date.day);
+    
+    final index = allStats.indexWhere((s) =>
+      s.date.year == dateStart.year &&
+      s.date.month == dateStart.month &&
+      s.date.day == dateStart.day
+    );
+
+    if (index >= 0) {
+      allStats[index] = stats;
+    } else {
+      allStats.add(stats);
+    }
+
+    await saveDailyStats(allStats);
+  }
+
+  Future<DailyStats?> getStatsForDate(DateTime date) async {
+    final allStats = await getDailyStats();
+    final dateStart = DateTime(date.year, date.month, date.day);
+    
+    try {
+      return allStats.firstWhere((s) =>
+        s.date.year == dateStart.year &&
+        s.date.month == dateStart.month &&
+        s.date.day == dateStart.day
+      );
+    } catch (e) {
+      return null;
     }
   }
 

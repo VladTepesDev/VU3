@@ -411,8 +411,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMealSchedule(BuildContext context) {
-    return Consumer<MenuProvider>(
-      builder: (context, menuProvider, _) {
+    return Consumer2<MenuProvider, MealProvider>(
+      builder: (context, menuProvider, mealProvider, _) {
         if (menuProvider.activeMenu == null) {
           return const SizedBox.shrink();
         }
@@ -421,6 +421,9 @@ class _HomeScreenState extends State<HomeScreen> {
         if (todayMeals.isEmpty) {
           return const SizedBox.shrink();
         }
+        
+        // Get today's manual meals to check for meal slot coverage
+        final todayManualMeals = mealProvider.getTodayMeals()?.meals ?? [];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,195 +436,239 @@ class _HomeScreenState extends State<HomeScreen> {
             ...todayMeals.map((meal) {
               final mealLog = menuProvider.getMealLog(meal.id, DateTime.now());
               final status = mealLog?.status ?? MealLogStatus.upcoming;
+              final canLog = menuProvider.canLogMeal(meal.id, todayManualMeals: todayManualMeals);
+              final isInteractive = canLog || status == MealLogStatus.completed || status == MealLogStatus.missed;
+              final hasPhoto = mealLog?.imagePath != null;
               
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: GestureDetector(
-                  onTap: () => _showLogMealDialog(context, meal, menuProvider),
-                  child: GlassContainer(
-                    padding: const EdgeInsets.all(18),
-                    color: status == MealLogStatus.completed 
-                        ? const Color(0xFFE8F5E9) // Soft green when completed
-                        : null,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            // Meal icon
-                            Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    AppTheme.glassWhite.withValues(alpha: 0.4),
-                                    AppTheme.glassGray.withValues(alpha: 0.3),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppTheme.borderGray,
-                                  width: 2,
-                                ),
-                              ),
-                              child: Icon(
-                                _getMealTypeIcon(meal.mealType),
-                                color: AppTheme.textBlack,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            
-                            // Meal info
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.glassGray,
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(
-                                            color: AppTheme.borderGray,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const Icon(
-                                              Icons.schedule,
-                                              size: 12,
-                                              color: AppTheme.textGray,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              meal.scheduledTime,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 12,
-                                                color: AppTheme.textBlack,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        meal.mealType.toUpperCase(),
-                                        style: const TextStyle(
-                                          color: AppTheme.textGray,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
+                  onTap: isInteractive
+                      ? () => _showLogMealDialog(context, meal, menuProvider)
+                      : null,
+                  child: Opacity(
+                    opacity: isInteractive ? 1.0 : 0.5,
+                    child: GlassContainer(
+                      padding: const EdgeInsets.all(18),
+                      color: status == MealLogStatus.completed 
+                          ? const Color(0xFFE8F5E9) // Soft green when completed
+                          : !canLog
+                              ? AppTheme.textGray.withValues(alpha: 0.1) // Locked appearance
+                              : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              // Meal icon or photo
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  gradient: hasPhoto ? null : LinearGradient(
+                                    colors: [
+                                      AppTheme.glassWhite.withValues(alpha: 0.4),
+                                      AppTheme.glassGray.withValues(alpha: 0.3),
                                     ],
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    meal.name,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.textBlack,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            
-                            // Status indicator
-                            if (status == MealLogStatus.upcoming)
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.glassGray,
-                                  shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: AppTheme.borderGray,
                                     width: 2,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.touch_app,
-                                  color: AppTheme.textGray,
-                                  size: 22,
+                                child: hasPhoto
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Image.file(
+                                          File(mealLog!.imagePath!),
+                                          width: 56,
+                                          height: 56,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Icon(
+                                              _getMealTypeIcon(meal.mealType),
+                                              color: AppTheme.textBlack,
+                                              size: 28,
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    : Icon(
+                                        _getMealTypeIcon(meal.mealType),
+                                        color: AppTheme.textBlack,
+                                        size: 28,
+                                      ),
+                              ),
+                              const SizedBox(width: 14),
+                              
+                              // Meal info
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.glassGray,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(
+                                              color: AppTheme.borderGray,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                Icons.schedule,
+                                                size: 12,
+                                                color: AppTheme.textGray,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                meal.scheduledTime,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                  color: AppTheme.textBlack,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          meal.mealType.toUpperCase(),
+                                          style: const TextStyle(
+                                            color: AppTheme.textGray,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      meal.name,
+                                      style: const TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textBlack,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ),
                               ),
-                            if (status == MealLogStatus.completed)
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.textBlack,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppTheme.textBlack,
-                                    width: 2,
+                              
+                              // Status indicator
+                              if (!canLog && status != MealLogStatus.completed)
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.textGray.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppTheme.textGray,
+                                      width: 2,
+                                    ),
                                   ),
-                                ),
-                                child: const Icon(
-                                  Icons.check_circle,
-                                  color: AppTheme.glassWhite,
-                                  size: 22,
-                                ),
-                              ),
-                            if (status == MealLogStatus.missed)
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.textGray.withValues(alpha: 0.2),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
+                                  child: const Icon(
+                                    Icons.lock_outline,
                                     color: AppTheme.textGray,
-                                    width: 2,
+                                    size: 22,
+                                  ),
+                                )
+                              else if (status == MealLogStatus.upcoming)
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.glassGray,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppTheme.borderGray,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.touch_app,
+                                    color: AppTheme.textGray,
+                                    size: 22,
+                                  ),
+                                )
+                              else if (status == MealLogStatus.completed)
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.textBlack,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppTheme.textBlack,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.check_circle,
+                                    color: AppTheme.glassWhite,
+                                    size: 22,
+                                  ),
+                                )
+                              else if (status == MealLogStatus.missed)
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.textGray.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppTheme.textGray,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.cancel,
+                                    color: AppTheme.textGray,
+                                    size: 22,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.cancel,
-                                  color: AppTheme.textGray,
-                                  size: 22,
-                                ),
+                            ],
+                          ),
+                          
+                          const SizedBox(height: 12),
+                          
+                          // Macros row
+                          Row(
+                            children: [
+                              _buildMacroTag(
+                                Icons.local_fire_department,
+                                '${meal.calories.toInt()}',
+                                'kcal',
                               ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12),
-                        
-                        // Macros row
-                        Row(
-                          children: [
-                            _buildMacroTag(
-                              Icons.local_fire_department,
-                              '${meal.calories.toInt()}',
-                              'kcal',
-                            ),
-                            const SizedBox(width: 8),
-                            _buildMacroTag(
-                              Icons.fitness_center,
-                              '${meal.protein.toInt()}g',
-                              'protein',
-                            ),
-                            const SizedBox(width: 8),
-                            _buildMacroTag(
-                              Icons.grain,
-                              '${meal.carbs.toInt()}g',
-                              'carbs',
-                            ),
-                            const SizedBox(width: 8),
-                            _buildMacroTag(
-                              Icons.opacity,
-                              '${meal.fat.toInt()}g',
-                              'fat',
-                            ),
-                          ],
-                        ),
-                      ],
+                              const SizedBox(width: 8),
+                              _buildMacroTag(
+                                Icons.fitness_center,
+                                '${meal.protein.toInt()}g',
+                                'protein',
+                              ),
+                              const SizedBox(width: 8),
+                              _buildMacroTag(
+                                Icons.grain,
+                                '${meal.carbs.toInt()}g',
+                                'carbs',
+                              ),
+                              const SizedBox(width: 8),
+                              _buildMacroTag(
+                                Icons.opacity,
+                                '${meal.fat.toInt()}g',
+                                'fat',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -678,14 +725,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showLogMealDialog(BuildContext context, meal, MenuProvider menuProvider) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => SafeArea(
-        child: Container(
+    final mealProvider = context.read<MealProvider>();
+    final todayManualMeals = mealProvider.getTodayMeals()?.meals ?? [];
+    final canLog = menuProvider.canLogMeal(meal.id, todayManualMeals: todayManualMeals);
+    final nextMeal = menuProvider.getNextMealToLog();
+    
+    // If meal is locked, show info message instead
+    if (!canLog) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.85,
+            maxHeight: MediaQuery.of(context).size.height * 0.5,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -706,14 +759,129 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 24,
-                    right: 24,
-                    top: 24,
-                    bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
-                  ),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: 24 + MediaQuery.of(context).padding.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Drag indicator
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: AppTheme.textLightGray,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    
+                    // Lock icon
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.textGray.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.lock_outline,
+                        size: 48,
+                        color: AppTheme.textGray,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    Text(
+                      'Meal Locked',
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textBlack,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    
+                    Text(
+                      'Please log your meals in order.\n${nextMeal != null ? 'Next meal: ${nextMeal.name}' : ''}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: AppTheme.textGray,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    GlassButton(
+                      isPrimary: true,
+                      onPressed: () => Navigator.pop(context),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.check, color: AppTheme.textWhite, size: 24),
+                          SizedBox(width: 12),
+                          Text(
+                            'Got it',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.85,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.glassWhite.withValues(alpha: 0.9),
+              AppTheme.glassGray.withValues(alpha: 0.8),
+            ],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          border: Border.all(
+            color: AppTheme.borderWhite.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 24,
+                  right: 24,
+                  top: 24,
+                  bottom: 24 + MediaQuery.of(context).padding.bottom,
+                ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -795,9 +963,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 12),
                       
                       GlassButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context);
-                          Navigator.pushNamed(context, '/add-meal', arguments: meal);
+                          
+                          final result = await Navigator.pushNamed(
+                            context, 
+                            '/add-meal', 
+                            arguments: meal,
+                          );
+                          
+                          if (!context.mounted) return;
+                          
+                          if (result is String) {
+                            CustomToast.success(context, result);
+                          }
                         },
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -848,7 +1027,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        ),
       ),
     );
   }
@@ -1108,16 +1286,66 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             ...todayMeals.meals.map((meal) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditMealScreen(meal: meal),
-                    ),
+              child: Dismissible(
+                key: Key(meal.id),
+                direction: DismissDirection.endToStart,
+                background: Container(
+                  alignment: Alignment.centerRight,
+                  padding: const EdgeInsets.only(right: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEF5350),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                confirmDismiss: (direction) async {
+                  return await showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: const Text('Delete Meal'),
+                        content: Text('Are you sure you want to delete "${meal.name}"?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFEF5350),
+                            ),
+                            child: const Text('Delete'),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
-                child: GlassContainer(
+                onDismissed: (direction) async {
+                  await mealProvider.deleteMeal(meal.id);
+                  if (context.mounted) {
+                    CustomToast.success(context, 'Meal deleted');
+                  }
+                },
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditMealScreen(meal: meal),
+                      ),
+                    );
+                  },
+                  child: GlassContainer(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
@@ -1192,7 +1420,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-            )),
+            ),
+          )),
           ],
         );
       },

@@ -7,6 +7,7 @@ import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
+import 'statistics_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -404,6 +405,27 @@ class ProfileScreen extends StatelessWidget {
                                 ],
                               ),
                               const SizedBox(height: 20),
+                              GlassButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const StatisticsScreen(),
+                                    ),
+                                  );
+                                },
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.bar_chart, size: 20),
+                                    SizedBox(width: 8),
+                                    Text('View Detailed Statistics'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
                               Text(
                                 'Macro Distribution (7 days)',
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -462,6 +484,20 @@ class ProfileScreen extends StatelessWidget {
                     Text(
                       'Settings',
                       style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSettingsItem(
+                      context,
+                      Icons.analytics_outlined,
+                      'Statistics',
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const StatisticsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsItem(
