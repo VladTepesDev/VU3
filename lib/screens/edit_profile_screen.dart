@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
+import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -380,13 +381,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     
     if (mounted) {
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('✓ Profile updated successfully!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      CustomToast.success(context, 'Profile updated successfully!');
     }
   }
 }

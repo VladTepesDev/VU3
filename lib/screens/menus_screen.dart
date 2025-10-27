@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
+import '../widgets/custom_toast.dart';
 import '../providers/menu_provider.dart';
 import '../providers/user_provider.dart';
 import '../services/storage_service.dart';
@@ -154,11 +155,7 @@ class MenusScreen extends StatelessWidget {
                         GlassButton(
                           onPressed: () {
                             // TODO: Add custom menu creation
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Custom menu creation coming soon!'),
-                              ),
-                            );
+                            CustomToast.info(context, 'Custom menu creation coming soon!');
                           },
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -335,12 +332,7 @@ class MenusScreen extends StatelessWidget {
       isActive: isActive,
       onFollow: () {
         menuProvider.setActiveMenu(menu);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Now following ${menu.name}'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        CustomToast.success(context, 'Now following ${menu.name}');
       },
       onDelete: menu.isCustom
           ? () => _showDeleteDialog(context, menu, menuProvider)

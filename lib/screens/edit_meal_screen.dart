@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/glass_text_field.dart';
+import '../widgets/custom_toast.dart';
 import '../models/meal.dart';
 import '../providers/meal_provider.dart';
 
@@ -93,9 +94,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        CustomToast.error(context, 'Error picking image: $e');
       }
     }
   }
@@ -201,9 +200,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
       
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Meal updated successfully!')),
-        );
+        CustomToast.success(context, 'Meal updated successfully!');
       }
     }
   }
@@ -221,7 +218,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -241,14 +238,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     
                     // Image Picker
                     GestureDetector(
                       onTap: () => _showImageSourceDialog(),
                       child: GlassContainer(
                         width: double.infinity,
-                        height: 200,
+                        height: 160,
                         child: _imageFile != null
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
@@ -274,14 +271,14 @@ class _EditMealScreenState extends State<EditMealScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     
                     // Meal Type
                     Text(
                       'Meal Type',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -297,7 +294,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     
                     // Meal Name
                     GlassTextField(
@@ -313,72 +310,67 @@ class _EditMealScreenState extends State<EditMealScreen> {
                       },
                     ),
                     
-                    const SizedBox(height: 16),
-                    
-                    // Calories and Weight
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GlassTextField(
-                            controller: _caloriesController,
-                            labelText: 'Calories (optional)',
-                            hintText: '0',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GlassTextField(
-                            controller: _weightController,
-                            labelText: 'Weight (g) (optional)',
-                            hintText: '0',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Macros
-                    Text(
-                      'Macronutrients (grams)',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
                     const SizedBox(height: 12),
                     
-                    Row(
-                      children: [
-                        Expanded(
-                          child: GlassTextField(
-                            controller: _proteinController,
-                            labelText: 'Protein (optional)',
-                            hintText: '0',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GlassTextField(
-                            controller: _carbsController,
-                            labelText: 'Carbs (optional)',
-                            hintText: '0',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: GlassTextField(
-                            controller: _fatController,
-                            labelText: 'Fat (optional)',
-                            hintText: '0',
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          ),
-                        ),
-                      ],
+                    // Calories
+                    GlassTextField(
+                      controller: _caloriesController,
+                      labelText: 'Calories',
+                      hintText: '0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter calories';
+                        }
+                        final calories = double.tryParse(value);
+                        if (calories == null || calories < 0) {
+                          return 'Please enter a valid number';
+                        }
+                        return null;
+                      },
                     ),
                     
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
+                    
+                    // Weight
+                    GlassTextField(
+                      controller: _weightController,
+                      labelText: 'Weight (g) (optional)',
+                      hintText: '0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Protein
+                    GlassTextField(
+                      controller: _proteinController,
+                      labelText: 'Protein (g) (optional)',
+                      hintText: '0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Carbs
+                    GlassTextField(
+                      controller: _carbsController,
+                      labelText: 'Carbs (g) (optional)',
+                      hintText: '0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    
+                    const SizedBox(height: 12),
+                    
+                    // Fat
+                    GlassTextField(
+                      controller: _fatController,
+                      labelText: 'Fat (g) (optional)',
+                      hintText: '0',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    ),
+                    
+                    const SizedBox(height: 12),
                     
                     // Notes
                     GlassTextField(
@@ -388,13 +380,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
                       maxLines: 3,
                     ),
                     
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
                     
                     // Update Button
                     GlassButton(
                       onPressed: _updateMeal,
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       child: Text(
                         'Update Meal',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -403,7 +395,7 @@ class _EditMealScreenState extends State<EditMealScreen> {
                       ),
                     ),
                     
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
@@ -420,13 +412,13 @@ class _EditMealScreenState extends State<EditMealScreen> {
       children: [
         Icon(
           Icons.add_a_photo,
-          size: 48,
+          size: 40,
           color: AppTheme.textGray.withValues(alpha: 0.7),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         Text(
           'Tap to change photo',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppTheme.textGray,
           ),
         ),

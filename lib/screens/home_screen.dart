@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
+import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
@@ -774,13 +775,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           if (!context.mounted) return;
                           
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('✓ ${meal.name} logged!'),
-                              backgroundColor: AppTheme.textBlack,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
+                          CustomToast.success(context, '${meal.name} logged!');
                         },
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,

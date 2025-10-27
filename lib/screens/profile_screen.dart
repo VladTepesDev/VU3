@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
+import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
@@ -699,12 +700,7 @@ class ProfileScreen extends StatelessWidget {
                 await userProvider.addWeightEntry(weight);
                 if (context.mounted) {
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Weight updated successfully!'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+                  CustomToast.success(context, 'Weight updated successfully!');
                 }
               }
             },
@@ -793,17 +789,11 @@ class ProfileScreen extends StatelessWidget {
                             onChanged: (value) async {
                               await waterProvider.toggleWaterNotifications(value);
                               if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      value 
-                                        ? '✓ Water reminders enabled' 
-                                        : '✓ Water reminders disabled'
-                                    ),
-                                    backgroundColor: AppTheme.textBlack,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
+                                if (value) {
+                                  CustomToast.success(context, 'Water reminders enabled');
+                                } else {
+                                  CustomToast.info(context, 'Water reminders disabled');
+                                }
                               }
                             },
                             activeTrackColor: AppTheme.textBlack.withValues(alpha: 0.5),
