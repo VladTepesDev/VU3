@@ -21,7 +21,7 @@ class ProfileScreen extends StatelessWidget {
             // App Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Profile',
                   style: Theme.of(context).textTheme.displaySmall,
@@ -32,7 +32,7 @@ class ProfileScreen extends StatelessWidget {
             // User Info Card
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Consumer<UserProvider>(
                   builder: (context, userProvider, child) {
                     final user = userProvider.userProfile;
@@ -133,7 +133,7 @@ class ProfileScreen extends StatelessWidget {
             // Daily Targets
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Consumer<UserProvider>(
                   builder: (context, userProvider, child) {
                     final user = userProvider.userProfile;
@@ -184,7 +184,7 @@ class ProfileScreen extends StatelessWidget {
             // Weight Progress
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Consumer<UserProvider>(
                 builder: (context, userProvider, _) {
                   final progress = userProvider.getWeightProgress();                    return Column(
@@ -233,7 +233,7 @@ class ProfileScreen extends StatelessWidget {
             // Statistics
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
               child: Consumer<MealProvider>(
                 builder: (context, mealProvider, _) {
                   final avgCalories = mealProvider.getWeeklyAverageCalories();
@@ -298,7 +298,7 @@ class ProfileScreen extends StatelessWidget {
             // Settings
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -326,7 +326,7 @@ class ProfileScreen extends StatelessWidget {
             ),
             
             const SliverToBoxAdapter(
-              child: SizedBox(height: 100), // Bottom padding for nav bar
+              child: SizedBox(height: 24), // Bottom padding for nav bar
             ),
           ],
         ),
@@ -479,7 +479,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        margin: const EdgeInsets.all(24),
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(

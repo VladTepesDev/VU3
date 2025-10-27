@@ -40,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // App Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -59,25 +59,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             
             // Today's Summary
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildTodaysSummary(context),
-                    const SizedBox(height: 24),
-                    _buildMacrosBreakdown(context),
-                    const SizedBox(height: 24),
-                    _buildMealSchedule(context),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(context),
-                    const SizedBox(height: 24),
-                    _buildTodaysMeals(context),
-                    const SizedBox(height: 100), // Bottom padding for nav bar
-                  ],
-                ),
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const SizedBox(height: 16),
+                  _buildTodaysSummary(context),
+                  const SizedBox(height: 24),
+                  _buildMacrosBreakdown(context),
+                  const SizedBox(height: 24),
+                  _buildMealSchedule(context),
+                  const SizedBox(height: 24),
+                  _buildQuickActions(context),
+                  const SizedBox(height: 24),
+                  _buildTodaysMeals(context),
+                  const SizedBox(height: 24), // Bottom padding for nav bar
+                ]),
               ),
             ),
           ],

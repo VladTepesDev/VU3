@@ -92,7 +92,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
             // App Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Add Meal',
                   style: Theme.of(context).textTheme.displaySmall,
@@ -103,7 +103,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
             // Form
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -113,6 +113,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       GestureDetector(
                         onTap: () => _showImageSourceDialog(),
                         child: GlassContainer(
+                          width: double.infinity,
                           height: 200,
                           child: _imageFile != null
                               ? ClipRRect(
@@ -151,16 +152,19 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildMealTypeChip('breakfast', '🍳 Breakfast'),
-                          const SizedBox(width: 8),
-                          _buildMealTypeChip('lunch', '🥗 Lunch'),
-                          const SizedBox(width: 8),
-                          _buildMealTypeChip('dinner', '🍽️ Dinner'),
-                          const SizedBox(width: 8),
-                          _buildMealTypeChip('snack', '🍎 Snack'),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildMealTypeChip('breakfast', '🍳 Breakfast'),
+                            const SizedBox(width: 8),
+                            _buildMealTypeChip('lunch', '🥗 Lunch'),
+                            const SizedBox(width: 8),
+                            _buildMealTypeChip('dinner', '🍽️ Dinner'),
+                            const SizedBox(width: 8),
+                            _buildMealTypeChip('snack', '🍎 Snack'),
+                          ],
+                        ),
                       ),
                       
                       const SizedBox(height: 24),
@@ -269,7 +273,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         ),
                       ),
                       
-                      const SizedBox(height: 100), // Bottom padding for nav bar
+                      const SizedBox(height: 24), // Bottom padding for nav bar
                     ],
                   ),
                 ),
@@ -284,40 +288,36 @@ class _AddMealScreenState extends State<AddMealScreen> {
   Widget _buildMealTypeChip(String type, String label) {
     final isSelected = _selectedMealType == type;
     
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedMealType = type),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
-          decoration: BoxDecoration(
-            gradient: isSelected
-                ? LinearGradient(
-                    colors: [
-                      AppTheme.textBlack,
-                      AppTheme.textDarkGray,
-                    ],
-                  )
-                : null,
-            color: isSelected ? null : Colors.transparent,
-            border: Border.all(
-              color: isSelected
-                  ? AppTheme.textBlack
-                  : AppTheme.borderGray,
-              width: isSelected ? 2 : 1.5,
-            ),
-            borderRadius: BorderRadius.circular(16),
+    return GestureDetector(
+      onTap: () => setState(() => _selectedMealType = type),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  colors: [
+                    AppTheme.textBlack,
+                    AppTheme.textDarkGray,
+                  ],
+                )
+              : null,
+          color: isSelected ? null : Colors.transparent,
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.textBlack
+                : AppTheme.borderGray,
+            width: isSelected ? 2 : 1.5,
           ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppTheme.textWhite : AppTheme.textGray,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppTheme.textWhite : AppTheme.textGray,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
@@ -328,7 +328,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        margin: const EdgeInsets.all(24),
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(

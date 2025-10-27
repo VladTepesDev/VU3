@@ -32,7 +32,7 @@ class _MainNavigationState extends State<MainNavigation> {
         children: _screens,
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(24),
+        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
           boxShadow: [

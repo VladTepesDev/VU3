@@ -21,7 +21,7 @@ class MenusScreen extends StatelessWidget {
             // App Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -47,7 +47,7 @@ class MenusScreen extends StatelessWidget {
                   
                   if (activeMenu != null) {
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -71,7 +71,7 @@ class MenusScreen extends StatelessWidget {
             // Predefined Menus
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -90,7 +90,7 @@ class MenusScreen extends StatelessWidget {
                 final predefinedMenus = menuProvider.predefinedMenus;
                 
                 return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -110,7 +110,7 @@ class MenusScreen extends StatelessWidget {
             // Custom Menus
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -162,7 +162,7 @@ class MenusScreen extends StatelessWidget {
                 if (customMenus.isEmpty) {
                   return SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: GlassContainer(
                         padding: const EdgeInsets.all(24),
                         child: Column(
@@ -192,7 +192,7 @@ class MenusScreen extends StatelessWidget {
                 }
                 
                 return SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -210,7 +210,7 @@ class MenusScreen extends StatelessWidget {
             ),
             
             const SliverToBoxAdapter(
-              child: SizedBox(height: 100), // Bottom padding for nav bar
+              child: SizedBox(height: 24), // Bottom padding for nav bar
             ),
           ],
         ),
