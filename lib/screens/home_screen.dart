@@ -679,163 +679,175 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.glassWhite.withValues(alpha: 0.9),
-              AppTheme.glassGray.withValues(alpha: 0.8),
-            ],
+      builder: (context) => SafeArea(
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
           ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          border: Border.all(
-            color: AppTheme.borderWhite.withValues(alpha: 0.8),
-            width: 1.5,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppTheme.glassWhite.withValues(alpha: 0.9),
+                AppTheme.glassGray.withValues(alpha: 0.8),
+              ],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            border: Border.all(
+              color: AppTheme.borderWhite.withValues(alpha: 0.8),
+              width: 1.5,
+            ),
           ),
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Drag indicator
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: AppTheme.textLightGray,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    left: 24,
+                    right: 24,
+                    top: 24,
+                    bottom: 24 + MediaQuery.of(context).viewInsets.bottom,
                   ),
-                  
-                  // Meal name
-                  Text(
-                    meal.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textBlack,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Macros
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(child: _buildMacroChip('${meal.calories.toInt()}', Icons.local_fire_department)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildMacroChip('${meal.protein.toInt()}g', Icons.fitness_center)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildMacroChip('${meal.carbs.toInt()}g', Icons.grain)),
-                      const SizedBox(width: 8),
-                      Expanded(child: _buildMacroChip('${meal.fat.toInt()}g', Icons.opacity)),
+                      // Drag indicator
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.textLightGray,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      
+                      // Meal name
+                      Text(
+                        meal.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textBlack,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Macros
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(child: _buildMacroChip('${meal.calories.toInt()}', Icons.local_fire_department)),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildMacroChip('${meal.protein.toInt()}g', Icons.fitness_center)),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildMacroChip('${meal.carbs.toInt()}g', Icons.grain)),
+                          const SizedBox(width: 8),
+                          Expanded(child: _buildMacroChip('${meal.fat.toInt()}g', Icons.opacity)),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Action buttons
+                      GlassButton(
+                        isPrimary: true,
+                        onPressed: () async {
+                          await menuProvider.logMeal(
+                            menuMealId: meal.id,
+                            calories: meal.calories,
+                            protein: meal.protein,
+                            carbs: meal.carbs,
+                            fat: meal.fat,
+                          );
+                          if (!context.mounted) return;
+                          
+                          await context.read<MealProvider>().refreshMealLogs();
+                          if (!context.mounted) return;
+                          
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('✓ ${meal.name} logged!'),
+                              backgroundColor: AppTheme.textBlack,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle, color: AppTheme.textWhite, size: 24),
+                            SizedBox(width: 12),
+                            Text(
+                              'Quick Log',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      GlassButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pushNamed(context, '/add-meal', arguments: meal);
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.camera_alt, color: AppTheme.textBlack, size: 24),
+                            SizedBox(width: 12),
+                            Text(
+                              'Log with Photo',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      GlassButton(
+                        onPressed: () async {
+                          await menuProvider.markMealAsMissed(meal.id);
+                          if (!context.mounted) return;
+                          
+                          await context.read<MealProvider>().refreshMealLogs();
+                          if (!context.mounted) return;
+                          
+                          Navigator.pop(context);
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.cancel, color: AppTheme.textGray, size: 24),
+                            SizedBox(width: 12),
+                            Text(
+                              'Mark as Missed',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  
-                  // Action buttons
-                  GlassButton(
-                    isPrimary: true,
-                    onPressed: () async {
-                      await menuProvider.logMeal(
-                        menuMealId: meal.id,
-                        calories: meal.calories,
-                        protein: meal.protein,
-                        carbs: meal.carbs,
-                        fat: meal.fat,
-                      );
-                      if (!context.mounted) return;
-                      
-                      await context.read<MealProvider>().refreshMealLogs();
-                      if (!context.mounted) return;
-                      
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('✓ ${meal.name} logged!'),
-                          backgroundColor: AppTheme.textBlack,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.check_circle, color: AppTheme.textWhite, size: 24),
-                        SizedBox(width: 12),
-                        Text(
-                          'Quick Log',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  GlassButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/add-meal', arguments: meal);
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.camera_alt, color: AppTheme.textBlack, size: 24),
-                        SizedBox(width: 12),
-                        Text(
-                          'Log with Photo',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  
-                  GlassButton(
-                    onPressed: () async {
-                      await menuProvider.markMealAsMissed(meal.id);
-                      if (!context.mounted) return;
-                      
-                      await context.read<MealProvider>().refreshMealLogs();
-                      if (!context.mounted) return;
-                      
-                      Navigator.pop(context);
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.cancel, color: AppTheme.textGray, size: 24),
-                        SizedBox(width: 12),
-                        Text(
-                          'Mark as Missed',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                ),
               ),
             ),
           ),
