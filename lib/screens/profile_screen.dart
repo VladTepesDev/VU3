@@ -45,7 +45,6 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-                          // Avatar
                           Container(
                             width: 80,
                             height: 80,
@@ -53,9 +52,13 @@ class ProfileScreen extends StatelessWidget {
                               shape: BoxShape.circle,
                               gradient: LinearGradient(
                                 colors: [
-                                  AppTheme.primaryLight,
-                                  AppTheme.secondaryLight,
+                                  AppTheme.glassWhite.withValues(alpha: 0.5),
+                                  AppTheme.glassGray.withValues(alpha: 0.5),
                                 ],
+                              ),
+                              border: Border.all(
+                                color: AppTheme.borderGray,
+                                width: 2,
                               ),
                             ),
                             child: Icon(
@@ -66,7 +69,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           
                           const SizedBox(height: 16),
-                          
+
                           // Basic Info
                           Text(
                             '${user.age} years old',
@@ -76,7 +79,7 @@ class ProfileScreen extends StatelessWidget {
                     user.gender == 'male' ? 'Male' : 'Female',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),                          const SizedBox(height: 24),
-                          
+
                           // Stats Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -100,7 +103,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           
                           const SizedBox(height: 16),
-                          
+
                           // BMI Category
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -108,7 +111,7 @@ class ProfileScreen extends StatelessWidget {
                               vertical: 8,
                             ),
                             decoration: BoxDecoration(
-                              color: _getBMIColor(user.bmiCategory).withOpacity(0.2),
+                              color: _getBMIColor(user.bmiCategory).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -200,10 +203,11 @@ class ProfileScreen extends StatelessWidget {
                                 Text(
                                   '${progress > 0 ? '-' : '+'}${progress.abs().toStringAsFixed(1)} kg',
                                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                    color: progress > 0 ? Colors.green : Colors.red,
+                                    color: AppTheme.textBlack,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
                                 Text(
                                   'Since you started',
                                   style: Theme.of(context).textTheme.bodyMedium,
@@ -396,13 +400,13 @@ class ProfileScreen extends StatelessWidget {
   Color _getBMIColor(String category) {
     switch (category) {
       case 'Normal':
-        return Colors.green;
+        return AppTheme.textBlack;
       case 'Underweight':
-        return Colors.blue;
+        return AppTheme.textGray;
       case 'Overweight':
-        return Colors.orange;
+        return AppTheme.textDarkGray;
       case 'Obese':
-        return Colors.red;
+        return AppTheme.textDarkGray;
       default:
         return AppTheme.textGray;
     }
@@ -479,7 +483,7 @@ class ProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
+            color: AppTheme.borderWhite.withValues(alpha: 0.4),
             width: 1.5,
           ),
         ),
@@ -491,8 +495,8 @@ class ProfileScreen extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.95),
-                  Colors.white.withOpacity(0.9),
+                  AppTheme.glassWhite.withValues(alpha: 0.95),
+                  AppTheme.glassWhite.withValues(alpha: 0.9),
                 ],
               ),
             ),

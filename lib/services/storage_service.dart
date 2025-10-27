@@ -3,14 +3,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_profile.dart';
 import '../models/meal.dart';
 import '../models/menu.dart';
+import '../models/meal_log.dart';
 import '../models/notification_settings.dart';
 
 class StorageService {
   static const String _userProfileKey = 'user_profile';
   static const String _mealsKey = 'meals';
   static const String _menusKey = 'menus';
+  static const String _mealLogsKey = 'meal_logs';
   static const String _notificationSettingsKey = 'notification_settings';
   static const String _isFirstLaunchKey = 'is_first_launch';
+  static const String _activeMenuIdKey = 'active_menu_id';
+  static const String _menuStartDateKey = 'menu_start_date';
 
   // User Profile
   Future<void> saveUserProfile(UserProfile profile) async {
@@ -81,6 +85,37 @@ class StorageService {
     return jsonList.map((e) => Menu.fromJson(e)).toList();
   }
 
+  // Active Menu Persistence
+  Future<void> saveActiveMenuId(String? menuId) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (menuId == null) {
+      await prefs.remove(_activeMenuIdKey);
+    } else {
+      await prefs.setString(_activeMenuIdKey, menuId);
+    }
+  }
+
+  Future<String?> getActiveMenuId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_activeMenuIdKey);
+  }
+
+  Future<void> saveMenuStartDate(DateTime? date) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (date == null) {
+      await prefs.remove(_menuStartDateKey);
+    } else {
+      await prefs.setString(_menuStartDateKey, date.toIso8601String());
+    }
+  }
+
+  Future<DateTime?> getMenuStartDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dateString = prefs.getString(_menuStartDateKey);
+    if (dateString == null) return null;
+    return DateTime.parse(dateString);
+  }
+
   List<Menu> _getDefaultMenus() {
     return [
       Menu(
@@ -91,108 +126,107 @@ class StorageService {
         meals: [
           MenuMeal(
             id: 'm1_1',
-            name: 'Oatmeal with Berries',
-            calories: 350,
-            protein: 12,
-            carbs: 55,
-            fat: 8,
+            name: 'Breakfast',
+            calories: 520,
+            protein: 25,
+            carbs: 60,
+            fat: 18,
             mealType: 'breakfast',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Rolled oats', amount: 60, unit: 'g'),
-              FoodItem(name: 'Mixed berries', amount: 100, unit: 'g'),
-              FoodItem(name: 'Honey', amount: 15, unit: 'ml'),
-              FoodItem(name: 'Almonds', amount: 20, unit: 'g'),
-            ],
-            instructions: 'Cook oats with water or milk. Top with berries, honey, and almonds.',
+            scheduledTime: '08:00',
+            foods: [],
+            instructions: 'Target: 520 kcal, 25g protein, 60g carbs, 18g fat',
           ),
           MenuMeal(
             id: 'm1_2',
-            name: 'Grilled Chicken Salad',
-            calories: 450,
-            protein: 40,
-            carbs: 25,
-            fat: 20,
+            name: 'Lunch',
+            calories: 680,
+            protein: 52,
+            carbs: 55,
+            fat: 24,
             mealType: 'lunch',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Chicken breast', amount: 150, unit: 'g'),
-              FoodItem(name: 'Mixed greens', amount: 100, unit: 'g'),
-              FoodItem(name: 'Cherry tomatoes', amount: 50, unit: 'g'),
-              FoodItem(name: 'Cucumber', amount: 50, unit: 'g'),
-              FoodItem(name: 'Olive oil dressing', amount: 15, unit: 'ml'),
-            ],
-            instructions: 'Grill chicken, slice and place on mixed greens with vegetables. Drizzle with dressing.',
+            scheduledTime: '13:00',
+            foods: [],
+            instructions: 'Target: 680 kcal, 52g protein, 55g carbs, 24g fat',
           ),
           MenuMeal(
             id: 'm1_3',
-            name: 'Salmon with Vegetables',
-            calories: 550,
-            protein: 45,
-            carbs: 30,
-            fat: 25,
+            name: 'Dinner',
+            calories: 750,
+            protein: 55,
+            carbs: 65,
+            fat: 28,
             mealType: 'dinner',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Salmon fillet', amount: 180, unit: 'g'),
-              FoodItem(name: 'Broccoli', amount: 150, unit: 'g'),
-              FoodItem(name: 'Sweet potato', amount: 150, unit: 'g'),
-              FoodItem(name: 'Lemon', amount: 1, unit: 'piece'),
-            ],
-            instructions: 'Bake salmon at 180°C for 15-20 min. Steam broccoli and roast sweet potato.',
+            scheduledTime: '19:00',
+            foods: [],
+            instructions: 'Target: 750 kcal, 55g protein, 65g carbs, 28g fat',
+          ),
+          MenuMeal(
+            id: 'm1_snack1',
+            name: 'Morning Snack',
+            calories: 250,
+            protein: 25,
+            carbs: 20,
+            fat: 8,
+            mealType: 'snack',
+            dayNumber: 1,
+            scheduledTime: '10:30',
+            foods: [],
+            instructions: 'Target: 250 kcal, 25g protein, 20g carbs, 8g fat',
+          ),
+          MenuMeal(
+            id: 'm1_snack2',
+            name: 'Afternoon Snack',
+            calories: 220,
+            protein: 8,
+            carbs: 18,
+            fat: 14,
+            mealType: 'snack',
+            dayNumber: 1,
+            scheduledTime: '16:00',
+            foods: [],
+            instructions: 'Target: 220 kcal, 8g protein, 18g carbs, 14g fat',
           ),
           MenuMeal(
             id: 'm2_1',
-            name: 'Greek Yogurt Bowl',
+            name: 'Breakfast',
             calories: 380,
             protein: 20,
             carbs: 45,
             fat: 12,
             mealType: 'breakfast',
             dayNumber: 2,
-            foods: [
-              FoodItem(name: 'Greek yogurt', amount: 200, unit: 'g'),
-              FoodItem(name: 'Granola', amount: 40, unit: 'g'),
-              FoodItem(name: 'Banana', amount: 1, unit: 'piece'),
-              FoodItem(name: 'Chia seeds', amount: 10, unit: 'g'),
-            ],
-            instructions: 'Layer yogurt with granola, sliced banana, and chia seeds.',
+            scheduledTime: '08:00',
+            foods: [],
+            instructions: 'Target: 380 kcal, 20g protein, 45g carbs, 12g fat',
           ),
           MenuMeal(
             id: 'm2_2',
-            name: 'Turkey Wrap',
+            name: 'Lunch',
             calories: 480,
             protein: 35,
             carbs: 40,
             fat: 18,
             mealType: 'lunch',
             dayNumber: 2,
-            foods: [
-              FoodItem(name: 'Whole wheat tortilla', amount: 1, unit: 'piece'),
-              FoodItem(name: 'Turkey breast', amount: 100, unit: 'g'),
-              FoodItem(name: 'Avocado', amount: 50, unit: 'g'),
-              FoodItem(name: 'Lettuce', amount: 30, unit: 'g'),
-              FoodItem(name: 'Tomato', amount: 50, unit: 'g'),
-            ],
-            instructions: 'Layer ingredients on tortilla and wrap tightly. Cut in half.',
+            scheduledTime: '13:00',
+            foods: [],
+            instructions: 'Target: 480 kcal, 35g protein, 40g carbs, 18g fat',
           ),
           MenuMeal(
             id: 'm2_3',
-            name: 'Beef Stir Fry',
+            name: 'Dinner',
             calories: 520,
             protein: 38,
             carbs: 45,
             fat: 20,
             mealType: 'dinner',
             dayNumber: 2,
-            foods: [
-              FoodItem(name: 'Beef sirloin', amount: 150, unit: 'g'),
-              FoodItem(name: 'Mixed vegetables', amount: 200, unit: 'g'),
-              FoodItem(name: 'Brown rice', amount: 150, unit: 'g'),
-              FoodItem(name: 'Soy sauce', amount: 15, unit: 'ml'),
-              FoodItem(name: 'Garlic', amount: 2, unit: 'cloves'),
-            ],
-            instructions: 'Stir fry beef with garlic, add vegetables. Serve over brown rice.',
+            scheduledTime: '19:00',
+            foods: [],
+            instructions: 'Target: 520 kcal, 38g protein, 45g carbs, 20g fat',
           ),
         ],
       ),
@@ -204,55 +238,42 @@ class StorageService {
         meals: [
           MenuMeal(
             id: 'hp1_1',
-            name: 'Protein Pancakes',
+            name: 'Breakfast',
             calories: 400,
             protein: 35,
             carbs: 40,
             fat: 12,
             mealType: 'breakfast',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Eggs', amount: 3, unit: 'pieces'),
-              FoodItem(name: 'Protein powder', amount: 30, unit: 'g'),
-              FoodItem(name: 'Oats', amount: 40, unit: 'g'),
-              FoodItem(name: 'Banana', amount: 1, unit: 'piece'),
-            ],
-            instructions: 'Blend all ingredients. Cook pancakes in non-stick pan.',
+            scheduledTime: '08:00',
+            foods: [],
+            instructions: 'Target: 400 kcal, 35g protein, 40g carbs, 12g fat',
           ),
           MenuMeal(
             id: 'hp1_2',
-            name: 'Beef and Quinoa Bowl',
+            name: 'Lunch',
             calories: 600,
             protein: 50,
             carbs: 45,
             fat: 22,
             mealType: 'lunch',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Ground beef', amount: 150, unit: 'g'),
-              FoodItem(name: 'Quinoa', amount: 100, unit: 'g'),
-              FoodItem(name: 'Black beans', amount: 80, unit: 'g'),
-              FoodItem(name: 'Corn', amount: 50, unit: 'g'),
-              FoodItem(name: 'Avocado', amount: 40, unit: 'g'),
-            ],
-            instructions: 'Cook beef and quinoa. Mix with beans and corn. Top with avocado.',
+            scheduledTime: '13:00',
+            foods: [],
+            instructions: 'Target: 600 kcal, 50g protein, 45g carbs, 22g fat',
           ),
           MenuMeal(
             id: 'hp1_3',
-            name: 'Chicken and Sweet Potato',
+            name: 'Dinner',
             calories: 580,
             protein: 52,
             carbs: 48,
             fat: 16,
             mealType: 'dinner',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Chicken breast', amount: 200, unit: 'g'),
-              FoodItem(name: 'Sweet potato', amount: 200, unit: 'g'),
-              FoodItem(name: 'Green beans', amount: 150, unit: 'g'),
-              FoodItem(name: 'Olive oil', amount: 10, unit: 'ml'),
-            ],
-            instructions: 'Grill chicken, bake sweet potato, steam green beans.',
+            scheduledTime: '19:00',
+            foods: [],
+            instructions: 'Target: 580 kcal, 52g protein, 48g carbs, 16g fat',
           ),
         ],
       ),
@@ -264,55 +285,42 @@ class StorageService {
         meals: [
           MenuMeal(
             id: 'wl1_1',
-            name: 'Egg White Omelette',
+            name: 'Breakfast',
             calories: 280,
             protein: 25,
             carbs: 20,
             fat: 10,
             mealType: 'breakfast',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Egg whites', amount: 150, unit: 'ml'),
-              FoodItem(name: 'Spinach', amount: 50, unit: 'g'),
-              FoodItem(name: 'Mushrooms', amount: 40, unit: 'g'),
-              FoodItem(name: 'Whole wheat toast', amount: 1, unit: 'slice'),
-            ],
-            instructions: 'Cook egg whites with vegetables. Serve with toast.',
+            scheduledTime: '08:00',
+            foods: [],
+            instructions: 'Target: 280 kcal, 25g protein, 20g carbs, 10g fat',
           ),
           MenuMeal(
             id: 'wl1_2',
-            name: 'Tuna Salad',
+            name: 'Lunch',
             calories: 320,
             protein: 35,
             carbs: 15,
             fat: 12,
             mealType: 'lunch',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'Canned tuna', amount: 120, unit: 'g'),
-              FoodItem(name: 'Mixed greens', amount: 100, unit: 'g'),
-              FoodItem(name: 'Cucumber', amount: 60, unit: 'g'),
-              FoodItem(name: 'Tomatoes', amount: 60, unit: 'g'),
-              FoodItem(name: 'Lemon juice', amount: 15, unit: 'ml'),
-            ],
-            instructions: 'Mix tuna with vegetables. Dress with lemon juice.',
+            scheduledTime: '13:00',
+            foods: [],
+            instructions: 'Target: 320 kcal, 35g protein, 15g carbs, 12g fat',
           ),
           MenuMeal(
             id: 'wl1_3',
-            name: 'Grilled Fish with Vegetables',
+            name: 'Dinner',
             calories: 380,
             protein: 40,
             carbs: 20,
             fat: 14,
             mealType: 'dinner',
             dayNumber: 1,
-            foods: [
-              FoodItem(name: 'White fish', amount: 180, unit: 'g'),
-              FoodItem(name: 'Zucchini', amount: 150, unit: 'g'),
-              FoodItem(name: 'Bell peppers', amount: 100, unit: 'g'),
-              FoodItem(name: 'Herbs', amount: 5, unit: 'g'),
-            ],
-            instructions: 'Grill fish with herbs. Roast vegetables.',
+            scheduledTime: '19:00',
+            foods: [],
+            instructions: 'Target: 380 kcal, 40g protein, 20g carbs, 14g fat',
           ),
         ],
       ),
@@ -344,6 +352,37 @@ class StorageService {
       );
     }
     return NotificationSettings.fromJson(jsonDecode(jsonString));
+  }
+
+  // Meal Logs
+  Future<void> saveMealLogs(List<MealLog> logs) async {
+    final prefs = await SharedPreferences.getInstance();
+    final logsJson = logs.map((log) => log.toJson()).toList();
+    await prefs.setString(_mealLogsKey, jsonEncode(logsJson));
+  }
+
+  Future<List<MealLog>> getMealLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jsonString = prefs.getString(_mealLogsKey);
+    if (jsonString == null) return [];
+    
+    final List<dynamic> jsonList = jsonDecode(jsonString);
+    return jsonList.map((json) => MealLog.fromJson(json)).toList();
+  }
+
+  Future<void> addMealLog(MealLog log) async {
+    final logs = await getMealLogs();
+    logs.add(log);
+    await saveMealLogs(logs);
+  }
+
+  Future<void> updateMealLog(MealLog log) async {
+    final logs = await getMealLogs();
+    final index = logs.indexWhere((l) => l.id == log.id);
+    if (index >= 0) {
+      logs[index] = log;
+      await saveMealLogs(logs);
+    }
   }
 
   // First Launch

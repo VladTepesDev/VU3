@@ -39,7 +39,7 @@ class NotificationService {
 
   void _onNotificationTapped(NotificationResponse response) {
     // Handle notification tap
-    print('Notification tapped: ${response.payload}');
+    // Future enhancement: Navigate to specific screen based on payload
   }
 
   Future<void> requestPermissions() async {

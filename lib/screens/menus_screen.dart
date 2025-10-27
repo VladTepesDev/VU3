@@ -170,7 +170,7 @@ class MenusScreen extends StatelessWidget {
                             Icon(
                               Icons.menu_book,
                               size: 48,
-                              color: AppTheme.textGray.withOpacity(0.5),
+                              color: AppTheme.textGray.withValues(alpha: 0.5),
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -250,7 +250,7 @@ class MenusScreen extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.2),
+                  color: Colors.green.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

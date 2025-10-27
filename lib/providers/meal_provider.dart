@@ -1,19 +1,32 @@
 import 'package:flutter/foundation.dart';
 import '../models/meal.dart';
+import '../models/meal_log.dart';
 import '../services/storage_service.dart';
 
 class MealProvider extends ChangeNotifier {
   final StorageService _storageService;
   List<DailyMeals> _dailyMealsList = [];
+  List<MealLog> _mealLogs = [];
 
   MealProvider(this._storageService) {
     _loadMeals();
+    _loadMealLogs();
   }
 
   List<DailyMeals> get dailyMealsList => _dailyMealsList;
 
   Future<void> _loadMeals() async {
     _dailyMealsList = await _storageService.getMeals();
+    notifyListeners();
+  }
+
+  Future<void> _loadMealLogs() async {
+    _mealLogs = await _storageService.getMealLogs();
+    notifyListeners();
+  }
+
+  Future<void> refreshMealLogs() async {
+    _mealLogs = await _storageService.getMealLogs();
     notifyListeners();
   }
 
@@ -85,15 +98,33 @@ class MealProvider extends ChangeNotifier {
 
   Map<String, double> getTodayMacros() {
     final todayMeals = getTodayMeals();
-    if (todayMeals == null) {
-      return {'calories': 0, 'protein': 0, 'carbs': 0, 'fat': 0};
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+
+    double calories = todayMeals?.totalCalories ?? 0;
+    double protein = todayMeals?.totalProtein ?? 0;
+    double carbs = todayMeals?.totalCarbs ?? 0;
+    double fat = todayMeals?.totalFat ?? 0;
+
+    final todayLogs = _mealLogs.where((log) =>
+      log.scheduledDate.year == todayStart.year &&
+      log.scheduledDate.month == todayStart.month &&
+      log.scheduledDate.day == todayStart.day &&
+      log.status == MealLogStatus.completed
+    );
+
+    for (var log in todayLogs) {
+      calories += log.actualCalories ?? 0;
+      protein += log.actualProtein ?? 0;
+      carbs += log.actualCarbs ?? 0;
+      fat += log.actualFat ?? 0;
     }
 
     return {
-      'calories': todayMeals.totalCalories,
-      'protein': todayMeals.totalProtein,
-      'carbs': todayMeals.totalCarbs,
-      'fat': todayMeals.totalFat,
+      'calories': calories,
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
     };
   }
 

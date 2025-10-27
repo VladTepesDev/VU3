@@ -35,23 +35,31 @@ class _MainNavigationState extends State<MainNavigation> {
         margin: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF000000).withValues(alpha: 0.1),
+              blurRadius: 20,
+              spreadRadius: 0,
+              offset: const Offset(0, 10),
+            ),
+          ],
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
+            color: AppTheme.borderWhite.withValues(alpha: 0.8),
             width: 1.5,
           ),
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(24),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
             child: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.3),
-                    Colors.white.withOpacity(0.15),
+                    AppTheme.glassWhite.withValues(alpha: 0.85),
+                    AppTheme.glassGray.withValues(alpha: 0.75),
                   ],
                 ),
               ),

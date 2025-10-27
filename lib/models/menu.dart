@@ -56,6 +56,7 @@ class MenuMeal {
   final int dayNumber;
   final List<FoodItem> foods;
   final String? instructions;
+  final String scheduledTime;
 
   MenuMeal({
     required this.id,
@@ -68,6 +69,7 @@ class MenuMeal {
     required this.dayNumber,
     this.foods = const [],
     this.instructions,
+    required this.scheduledTime,
   });
 
   Map<String, dynamic> toJson() {
@@ -82,6 +84,7 @@ class MenuMeal {
       'dayNumber': dayNumber,
       'foods': foods.map((e) => e.toJson()).toList(),
       'instructions': instructions,
+      'scheduledTime': scheduledTime,
     };
   }
 
@@ -97,6 +100,7 @@ class MenuMeal {
       dayNumber: json['dayNumber'],
       foods: (json['foods'] as List?)?.map((e) => FoodItem.fromJson(e)).toList() ?? [],
       instructions: json['instructions'],
+      scheduledTime: json['scheduledTime'] ?? '12:00',
     );
   }
 }

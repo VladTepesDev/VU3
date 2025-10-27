@@ -75,7 +75,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       await image.copy(path);
       return path;
     } catch (e) {
-      print('Error saving image: $e');
+      // Error saving image - return null
       return null;
     }
   }
@@ -129,7 +129,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                                     Icon(
                                       Icons.add_a_photo,
                                       size: 48,
-                                      color: AppTheme.textGray.withOpacity(0.7),
+                                      color: AppTheme.textGray.withValues(alpha: 0.7),
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
@@ -187,30 +187,18 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           Expanded(
                             child: GlassTextField(
                               controller: _caloriesController,
-                              labelText: 'Calories',
+                              labelText: 'Calories (optional)',
                               hintText: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: GlassTextField(
                               controller: _weightController,
-                              labelText: 'Weight (g)',
+                              labelText: 'Weight (g) (optional)',
                               hintText: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
                         ],
@@ -230,45 +218,27 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           Expanded(
                             child: GlassTextField(
                               controller: _proteinController,
-                              labelText: 'Protein',
+                              labelText: 'Protein (optional)',
                               hintText: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: GlassTextField(
                               controller: _carbsController,
-                              labelText: 'Carbs',
+                              labelText: 'Carbs (optional)',
                               hintText: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: GlassTextField(
                               controller: _fatController,
-                              labelText: 'Fat',
+                              labelText: 'Fat (optional)',
                               hintText: '0',
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Required';
-                                }
-                                return null;
-                              },
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             ),
                           ),
                         ],
@@ -318,25 +288,35 @@ class _AddMealScreenState extends State<AddMealScreen> {
       child: GestureDetector(
         onTap: () => setState(() => _selectedMealType = type),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppTheme.textBlack.withOpacity(0.1)
-                : Colors.transparent,
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [
+                      AppTheme.textBlack,
+                      AppTheme.textDarkGray,
+                    ],
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
             border: Border.all(
               color: isSelected
                   ? AppTheme.textBlack
-                  : Colors.white.withOpacity(0.4),
+                  : AppTheme.borderGray,
               width: isSelected ? 2 : 1.5,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
           ),
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? AppTheme.textWhite : AppTheme.textGray,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
         ),
       ),
@@ -352,7 +332,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: Colors.white.withOpacity(0.4),
+            color: AppTheme.borderWhite.withValues(alpha: 0.4),
             width: 1.5,
           ),
         ),
@@ -364,8 +344,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withOpacity(0.9),
-                  Colors.white.withOpacity(0.8),
+                  AppTheme.glassWhite.withValues(alpha: 0.9),
+                  AppTheme.glassWhite.withValues(alpha: 0.8),
                 ],
               ),
             ),
@@ -406,14 +386,30 @@ class _AddMealScreenState extends State<AddMealScreen> {
       imagePath = await _saveImage(_imageFile!);
     }
 
+    final calories = _caloriesController.text.isNotEmpty 
+        ? (double.tryParse(_caloriesController.text) ?? 0.0)
+        : 0.0;
+    final protein = _proteinController.text.isNotEmpty 
+        ? (double.tryParse(_proteinController.text) ?? 0.0)
+        : 0.0;
+    final carbs = _carbsController.text.isNotEmpty 
+        ? (double.tryParse(_carbsController.text) ?? 0.0)
+        : 0.0;
+    final fat = _fatController.text.isNotEmpty 
+        ? (double.tryParse(_fatController.text) ?? 0.0)
+        : 0.0;
+    final weight = _weightController.text.isNotEmpty 
+        ? (double.tryParse(_weightController.text) ?? 0.0)
+        : 0.0;
+
     final meal = Meal(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text,
-      calories: double.parse(_caloriesController.text),
-      protein: double.parse(_proteinController.text),
-      carbs: double.parse(_carbsController.text),
-      fat: double.parse(_fatController.text),
-      weight: double.parse(_weightController.text),
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fat: fat,
+      weight: weight,
       imagePath: imagePath,
       createdAt: DateTime.now(),
       mealType: _selectedMealType,
@@ -426,7 +422,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Meal added successfully!'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.textBlack,
+          behavior: SnackBarBehavior.floating,
         ),
       );
 

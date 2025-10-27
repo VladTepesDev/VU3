@@ -117,7 +117,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             decoration: BoxDecoration(
               color: isActive
                   ? AppTheme.textBlack
-                  : AppTheme.textGray.withOpacity(0.3),
+                  : AppTheme.textLightGray.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -156,7 +156,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             border: Border.all(
               color: _selectedGender == 'male'
                   ? AppTheme.textBlack
-                  : Colors.white.withOpacity(0.4),
+                  : AppTheme.borderGray,
               width: _selectedGender == 'male' ? 2 : 1.5,
             ),
             child: Row(
@@ -185,7 +185,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             border: Border.all(
               color: _selectedGender == 'female'
                   ? AppTheme.textBlack
-                  : Colors.white.withOpacity(0.4),
+                  : AppTheme.borderGray,
               width: _selectedGender == 'female' ? 2 : 1.5,
             ),
             child: Row(
@@ -333,18 +333,34 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     return GestureDetector(
       onTap: () => setState(() => _activityLevel = value),
       child: GlassContainer(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         border: Border.all(
           color: isSelected
               ? AppTheme.textBlack
-              : Colors.white.withOpacity(0.4),
+              : AppTheme.borderGray,
           width: isSelected ? 2 : 1.5,
         ),
         child: Row(
           children: [
-            Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: AppTheme.textBlack,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.textBlack
+                    : AppTheme.glassGray,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected
+                      ? AppTheme.textBlack
+                      : AppTheme.borderGray,
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.check,
+                color: isSelected ? AppTheme.textWhite : Colors.transparent,
+                size: 16,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -353,8 +369,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall,

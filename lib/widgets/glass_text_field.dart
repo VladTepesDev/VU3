@@ -43,31 +43,38 @@ class _GlassTextFieldState extends State<GlassTextField> {
         borderRadius: BorderRadius.circular(widget.borderRadius),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: const Color(0xFF000000).withValues(alpha: 0.06),
+            blurRadius: 12,
+            spreadRadius: 0,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+            blurRadius: 1,
+            spreadRadius: 0,
+            offset: const Offset(0, -1),
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(widget.borderRadius),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withValues(alpha: 0.25),
-                  Colors.white.withValues(alpha: 0.15),
+                  const Color(0xFFFFFFFF).withValues(alpha: 0.85),
+                  const Color(0xFFFAFAFA).withValues(alpha: 0.75),
                 ],
               ),
               borderRadius: BorderRadius.circular(widget.borderRadius),
               border: Border.all(
                 color: _isFocused 
-                    ? const Color(0xFF1A1A1A).withValues(alpha: 0.3)
-                    : Colors.white.withValues(alpha: 0.6),
+                    ? const Color(0xFF1C1C1E).withValues(alpha: 0.3)
+                    : const Color(0xFFFFFFFF).withValues(alpha: 0.9),
                 width: _isFocused ? 2 : 1.5,
               ),
             ),
@@ -83,23 +90,38 @@ class _GlassTextFieldState extends State<GlassTextField> {
                 onChanged: widget.onChanged,
                 maxLines: widget.maxLines,
                 style: const TextStyle(
-                  color: Color(0xFF1A1A1A),
+                  color: Color(0xFF1C1C1E),
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
                   hintText: widget.hintText,
                   labelText: widget.labelText,
-                  hintStyle: TextStyle(
-                    color: const Color(0xFF6B7280).withValues(alpha: 0.7),
+                  hintStyle: const TextStyle(
+                    color: Color(0xFF8E8E93),
                     fontSize: 16,
+                    fontWeight: FontWeight.w400,
                   ),
                   labelStyle: const TextStyle(
-                    color: Color(0xFF6B7280),
+                    color: Color(0xFF8E8E93),
                     fontSize: 14,
                   ),
-                  prefixIcon: widget.prefixIcon,
-                  suffixIcon: widget.suffixIcon,
+                  prefixIcon: widget.prefixIcon != null
+                      ? IconTheme(
+                          data: const IconThemeData(
+                            color: Color(0xFF8E8E93),
+                          ),
+                          child: widget.prefixIcon!,
+                        )
+                      : null,
+                  suffixIcon: widget.suffixIcon != null
+                      ? IconTheme(
+                          data: const IconThemeData(
+                            color: Color(0xFF8E8E93),
+                          ),
+                          child: widget.suffixIcon!,
+                        )
+                      : null,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,

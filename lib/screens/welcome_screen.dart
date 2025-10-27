@@ -28,7 +28,7 @@ class WelcomeScreen extends StatelessWidget {
                   child: Icon(
                     Icons.restaurant_menu,
                     size: 80,
-                    color: AppTheme.textBlack.withOpacity(0.8),
+                    color: AppTheme.textBlack.withValues(alpha: 0.8),
                   ),
                 ),
                 
@@ -85,6 +85,7 @@ class WelcomeScreen extends StatelessWidget {
                 
                 // Get Started Button
                 GlassButton(
+                  isPrimary: true,
                   onPressed: () {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(
@@ -98,6 +99,7 @@ class WelcomeScreen extends StatelessWidget {
                     'Get Started',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
+                      color: AppTheme.textWhite,
                     ),
                   ),
                 ),
@@ -113,19 +115,37 @@ class WelcomeScreen extends StatelessWidget {
 
   Widget _buildFeature(BuildContext context, IconData icon, String text) {
     return GlassContainer(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: AppTheme.textBlack,
-            size: 28,
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.glassWhite.withValues(alpha: 0.5),
+                  AppTheme.glassGray.withValues(alpha: 0.5),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppTheme.borderGray,
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              icon,
+              color: AppTheme.textBlack,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

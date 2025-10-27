@@ -20,7 +20,7 @@ class GlassButton extends StatefulWidget {
     this.height,
     this.borderRadius = 16,
     this.color,
-    this.blur = 20,
+    this.blur = 30,
     this.padding,
     this.isPrimary = false,
   });
@@ -34,27 +34,38 @@ class _GlassButtonState extends State<GlassButton> {
 
   @override
   Widget build(BuildContext context) {
-    final baseColor = widget.isPrimary 
-        ? const Color(0xFF1A1A1A)
-        : (widget.color ?? Colors.white);
-
     return AnimatedScale(
-      scale: _isPressed ? 0.95 : 1.0,
+      scale: _isPressed ? 0.96 : 1.0,
       duration: const Duration(milliseconds: 100),
       child: Container(
         width: widget.width,
         height: widget.height,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          boxShadow: [
+          boxShadow: widget.isPrimary ? [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF000000).withValues(alpha: 0.2),
+              blurRadius: 16,
+              spreadRadius: 0,
+              offset: const Offset(0, 8),
             ),
             BoxShadow(
-              color: Colors.white.withValues(alpha: 0.9),
-              blurRadius: 2,
+              color: const Color(0xFF000000).withValues(alpha: 0.1),
+              blurRadius: 4,
+              spreadRadius: 0,
+              offset: const Offset(0, 2),
+            ),
+          ] : [
+            BoxShadow(
+              color: const Color(0xFF000000).withValues(alpha: 0.08),
+              blurRadius: 16,
+              spreadRadius: 0,
+              offset: const Offset(0, 6),
+            ),
+            BoxShadow(
+              color: const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+              blurRadius: 1,
+              spreadRadius: 0,
               offset: const Offset(0, -1),
             ),
           ],
@@ -71,37 +82,50 @@ class _GlassButtonState extends State<GlassButton> {
                 onTapUp: (_) => setState(() => _isPressed = false),
                 onTapCancel: () => setState(() => _isPressed = false),
                 borderRadius: BorderRadius.circular(widget.borderRadius),
-                splashColor: baseColor.withValues(alpha: 0.2),
-                highlightColor: baseColor.withValues(alpha: 0.1),
+                splashColor: widget.isPrimary
+                    ? const Color(0xFFFFFFFF).withValues(alpha: 0.2)
+                    : const Color(0xFF000000).withValues(alpha: 0.05),
+                highlightColor: widget.isPrimary
+                    ? const Color(0xFFFFFFFF).withValues(alpha: 0.1)
+                    : const Color(0xFF000000).withValues(alpha: 0.03),
                 child: Container(
                   padding: widget.padding ?? const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: widget.isPrimary ? [
-                        baseColor.withValues(alpha: 0.9),
-                        baseColor.withValues(alpha: 0.8),
-                      ] : [
-                        baseColor.withValues(alpha: 0.25),
-                        baseColor.withValues(alpha: 0.15),
-                      ],
-                    ),
+                    gradient: widget.isPrimary
+                        ? const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFF2C2C2E),
+                              Color(0xFF1C1C1E),
+                            ],
+                          )
+                        : LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xFFFFFFFF).withValues(alpha: 0.8),
+                              const Color(0xFFFAFAFA).withValues(alpha: 0.7),
+                            ],
+                          ),
                     borderRadius: BorderRadius.circular(widget.borderRadius),
                     border: Border.all(
                       color: widget.isPrimary 
-                          ? Colors.white.withValues(alpha: 0.3)
-                          : Colors.white.withValues(alpha: 0.6),
+                          ? const Color(0xFF3A3A3C).withValues(alpha: 0.8)
+                          : const Color(0xFFFFFFFF).withValues(alpha: 0.9),
                       width: 1.5,
                     ),
                   ),
                   child: Center(
                     child: DefaultTextStyle(
                       style: TextStyle(
-                        color: widget.isPrimary ? Colors.white : const Color(0xFF1A1A1A),
+                        color: widget.isPrimary
+                            ? const Color(0xFFFFFFFF)
+                            : const Color(0xFF1C1C1E),
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),
                       child: widget.child,
