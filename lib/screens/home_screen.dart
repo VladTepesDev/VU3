@@ -23,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  DateTime? _lastCheckDate;
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +32,8 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       
-      await context.read<MealProvider>().refreshMealLogs();
+      // Check for day change
+      await _checkForDayChange();
       
       if (!mounted) return;
       
@@ -45,6 +48,22 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     });
+  }
+
+  Future<void> _checkForDayChange() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (_lastCheckDate == null || _lastCheckDate!.isBefore(today)) {
+      _lastCheckDate = today;
+      
+      // Day has changed, refresh all providers
+      if (!mounted) return;
+      
+      await context.read<WaterProvider>().checkAndResetForNewDay();
+      await context.read<MealProvider>().checkAndResetForNewDay();
+      await context.read<MenuProvider>().checkAndResetForNewDay();
+    }
   }
 
   @override
@@ -1449,9 +1468,9 @@ class _CalorieZonePainter extends CustomPainter {
 
     // Calculate zone boundaries as percentages of target
     final zones = [
-      // Undereating severe: 0% to 50%
+      // Under goal severe: 0% to 50%
       {'start': 0.0, 'end': 0.5, 'color': const Color(0xFFEF5350)},
-      // Undereating moderate: 50% to 87.5% (target - 250)
+      // Under goal moderate: 50% to 87.5% (target - 250)
       {'start': 0.5, 'end': 0.875, 'color': const Color(0xFFFFA726)},
       // Optimal zone: 87.5% to 112.5% (target ± 100, but we'll make it ±12.5% for visibility)
       {'start': 0.875, 'end': 1.125, 'color': const Color(0xFF66BB6A)},

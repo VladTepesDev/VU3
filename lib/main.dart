@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
 import 'services/notification_service.dart';
+import 'services/day_change_service.dart';
 import 'providers/user_provider.dart';
 import 'providers/meal_provider.dart';
 import 'providers/menu_provider.dart';
@@ -39,11 +40,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final storageService = StorageService();
     final notificationService = NotificationService();
+    final dayChangeService = DayChangeService();
     
     return MultiProvider(
       providers: [
         Provider<StorageService>.value(value: storageService),
         Provider<NotificationService>.value(value: notificationService),
+        Provider<DayChangeService>.value(value: dayChangeService),
         ChangeNotifierProvider(
           create: (_) => UserProvider(storageService),
         ),
@@ -71,8 +74,69 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppInitializer extends StatelessWidget {
+class AppInitializer extends StatefulWidget {
   const AppInitializer({super.key});
+
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObserver {
+  DateTime? _lastCheckDate;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _checkAndHandleDayChange();
+    
+    // Listen to day change service
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final dayChangeService = context.read<DayChangeService>();
+      dayChangeService.addListener(_handleDayChange);
+    });
+  }
+
+  @override
+  void dispose() {
+    final dayChangeService = context.read<DayChangeService>();
+    dayChangeService.removeListener(_handleDayChange);
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // App came to foreground, check if day changed
+      _checkAndHandleDayChange();
+    }
+  }
+
+  void _handleDayChange() {
+    // Called when day changes automatically
+    _checkAndHandleDayChange();
+  }
+
+  Future<void> _checkAndHandleDayChange() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (_lastCheckDate == null || _lastCheckDate!.isBefore(today)) {
+      _lastCheckDate = today;
+      
+      // Trigger day change in all providers
+      if (!mounted) return;
+      
+      // Reload water data (it has built-in day check)
+      await context.read<WaterProvider>().checkAndResetForNewDay();
+      
+      // Refresh all data
+      await context.read<MealProvider>().checkAndResetForNewDay();
+      await context.read<MenuProvider>().checkAndResetForNewDay();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

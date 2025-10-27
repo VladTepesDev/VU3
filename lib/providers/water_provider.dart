@@ -35,6 +35,10 @@ class WaterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> checkAndResetForNewDay() async {
+    await _loadWaterData();
+  }
+
   Future<void> _loadNotificationSettings() async {
     final prefs = await SharedPreferences.getInstance();
     _waterNotificationsEnabled = prefs.getBool('water_notifications_enabled') ?? false;

@@ -103,9 +103,9 @@ class UserProfile {
     else if (diff > 250) {
       return 'overeating';
     }
-    // Undereating (more than 250 kcal under target)
+    // Under goal (more than 250 kcal under target)
     else {
-      return 'undereating';
+      return 'under_goal';
     }
   }
 
@@ -117,8 +117,8 @@ class UserProfile {
         return 'Acceptable Range';
       case 'overeating':
         return 'Overeating';
-      case 'undereating':
-        return 'Undereating';
+      case 'under_goal':
+        return 'Under Goal';
       default:
         return 'Unknown';
     }
@@ -131,7 +131,7 @@ class UserProfile {
       case 'acceptable':
         return const Color(0xFFFFA726); // Orange
       case 'overeating':
-      case 'undereating':
+      case 'under_goal':
         return const Color(0xFFEF5350); // Red
       default:
         return const Color(0xFF9E9E9E); // Gray

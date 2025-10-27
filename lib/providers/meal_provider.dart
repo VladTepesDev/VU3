@@ -44,6 +44,18 @@ class MealProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> checkAndResetForNewDay() async {
+    // Reload all data for the new day
+    _dailyMealsList = await _storageService.getMeals();
+    _mealLogs = await _storageService.getMealLogs();
+    _dailyStats = await _storageService.getDailyStats();
+    
+    // Update statistics for the new day
+    await updateDailyStatistics();
+    
+    notifyListeners();
+  }
+
   DailyMeals? getTodayMeals() {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);

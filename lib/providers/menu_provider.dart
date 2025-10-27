@@ -38,6 +38,15 @@ class MenuProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> checkAndResetForNewDay() async {
+    // Reload meal logs and regenerate for today
+    await _loadMealLogs();
+    if (_activeMenu != null) {
+      await _generateMealLogsForActiveMenu();
+    }
+    notifyListeners();
+  }
+
   Future<void> _loadActiveMenu() async {
     final menuId = await _storageService.getActiveMenuId();
     final startDate = await _storageService.getMenuStartDate();
