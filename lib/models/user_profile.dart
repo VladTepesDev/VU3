@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class UserProfile {
   final String id;
   final String gender; // 'male' or 'female'
@@ -86,15 +88,24 @@ class UserProfile {
   }
 
   String getCalorieZone(double calories) {
-    final optimal = optimalRange;
-    final acceptable = acceptableRange;
+    final target = recommendedCalories;
+    final diff = calories - target;
     
-    if (calories >= optimal['min']! && calories <= optimal['max']!) {
+    // Check if within optimal range (±100 kcal)
+    if (diff.abs() <= 100) {
       return 'optimal';
-    } else if (calories >= acceptable['min']! && calories <= acceptable['max']!) {
+    } 
+    // Check if within acceptable range (±250 kcal)
+    else if (diff.abs() <= 250) {
       return 'acceptable';
-    } else {
-      return 'excessive';
+    }
+    // Overeating (more than 250 kcal over target)
+    else if (diff > 250) {
+      return 'overeating';
+    }
+    // Undereating (more than 250 kcal under target)
+    else {
+      return 'undereating';
     }
   }
 
@@ -104,10 +115,26 @@ class UserProfile {
         return 'Perfect Range';
       case 'acceptable':
         return 'Acceptable Range';
-      case 'excessive':
-        return 'Out of Range';
+      case 'overeating':
+        return 'Overeating';
+      case 'undereating':
+        return 'Undereating';
       default:
         return 'Unknown';
+    }
+  }
+  
+  Color getZoneColor(String zone) {
+    switch (zone) {
+      case 'optimal':
+        return const Color(0xFF66BB6A); // Green
+      case 'acceptable':
+        return const Color(0xFFFFA726); // Orange
+      case 'overeating':
+      case 'undereating':
+        return const Color(0xFFEF5350); // Red
+      default:
+        return const Color(0xFF9E9E9E); // Gray
     }
   }
 

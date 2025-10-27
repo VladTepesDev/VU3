@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:math' as dart_math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -93,34 +94,13 @@ class _HomeScreenState extends State<HomeScreen> {
         final targetCalories = user?.recommendedCalories ?? 
                                menuProvider.getTodayTargetCalories();
         
-        String zone = 'acceptable';
-        Color zoneColor = const Color(0xFFFFA726);
+        String zone = 'none';
+        Color zoneColor = AppTheme.textGray;
         
-        if (user != null && consumedCalories > 0) {
+        if (consumedCalories > 0 && user != null) {
           zone = user.getCalorieZone(consumedCalories);
-          zoneColor = zone == 'optimal' 
-              ? const Color(0xFF66BB6A)
-              : zone == 'acceptable' 
-                  ? const Color(0xFFFFA726)
-                  : const Color(0xFFEF5350);
-        } else if (consumedCalories > 0) {
-          final diff = (consumedCalories - targetCalories).abs();
-          if (diff <= 100) {
-            zone = 'optimal';
-            zoneColor = const Color(0xFF66BB6A);
-          } else if (diff <= 250) {
-            zone = 'acceptable';
-            zoneColor = const Color(0xFFFFA726);
-          } else {
-            zone = 'excessive';
-            zoneColor = const Color(0xFFEF5350);
-          }
-        } else {
-          zoneColor = AppTheme.textGray;
+          zoneColor = user.getZoneColor(zone);
         }
-        
-        final optimalMin = user?.optimalRange['min'] ?? (targetCalories - 100);
-        final optimalMax = user?.optimalRange['max'] ?? (targetCalories + 100);
 
         return GlassContainer(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
@@ -157,69 +137,102 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
+                    // Zone markers background
                     SizedBox(
-                      width: 180,
-                      height: 180,
-                      child: CircularProgressIndicator(
-                        value: (consumedCalories / targetCalories).clamp(0.0, 1.0),
-                        strokeWidth: 14,
-                        backgroundColor: AppTheme.textLightGray.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(zoneColor),
+                      width: 200,
+                      height: 200,
+                      child: CustomPaint(
+                        painter: _CalorieZonePainter(
+                          targetCalories: targetCalories,
+                        ),
                       ),
                     ),
+                    // Actual progress
+                    SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: CustomPaint(
+                        painter: _CalorieProgressPainter(
+                          targetCalories: targetCalories,
+                          consumedCalories: consumedCalories,
+                          zoneColor: zoneColor,
+                        ),
+                      ),
+                    ),
+                    // Center content
                     Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${consumedCalories.toInt()}',
                           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                             fontWeight: FontWeight.w700,
+                            fontSize: 52,
                             color: consumedCalories > 0 ? zoneColor : AppTheme.textGray,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        if (user != null && consumedCalories > 0) ...[
-                          Text(
-                            user.getZoneDescription(zone),
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: zoneColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${optimalMin.toInt()}-${optimalMax.toInt()} kcal',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textGray,
-                            ),
-                          ),
-                        ] else ...[
-                          Text(
-                            'of ${targetCalories.toInt()}',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppTheme.textGray,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 2),
                         Text(
                           'kcal',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textGray,
+                            fontSize: 14,
+                            letterSpacing: 0.5,
                           ),
                         ),
+                        if (consumedCalories > 0 && user != null) ...[
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: zoneColor.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: zoneColor.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              user.getZoneDescription(zone),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: zoneColor,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
               
-              const SizedBox(height: 24),
-              Text(
-                '${(targetCalories - consumedCalories).toInt()} kcal remaining',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppTheme.textDarkGray,
-                  fontWeight: FontWeight.w500,
-                ),
+              const SizedBox(height: 28),
+              
+              // Target and remaining info
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildCalorieInfoChip(
+                    context,
+                    'Target',
+                    '${targetCalories.toInt()}',
+                    Icons.flag_outlined,
+                    AppTheme.textGray,
+                  ),
+                  const SizedBox(width: 12),
+                  _buildCalorieInfoChip(
+                    context,
+                    'Remaining',
+                    '${(targetCalories - consumedCalories).toInt()}',
+                    Icons.trending_down,
+                    consumedCalories > targetCalories 
+                        ? const Color(0xFFEF5350)
+                        : const Color(0xFF66BB6A),
+                  ),
+                ],
               ),
               
               // Show adherence if on a plan
@@ -250,6 +263,56 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCalorieInfoChip(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.glassWhite.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.borderGray.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: AppTheme.textGray,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                '$value kcal',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1096,3 +1159,197 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// Custom painter for calorie zone markers
+class _CalorieZonePainter extends CustomPainter {
+  final double targetCalories;
+
+  _CalorieZonePainter({
+    required this.targetCalories,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 10;
+    final strokeWidth = 12.0;
+
+    // Calculate zone boundaries as percentages of target
+    final zones = [
+      // Undereating severe: 0% to 50%
+      {'start': 0.0, 'end': 0.5, 'color': const Color(0xFFEF5350)},
+      // Undereating moderate: 50% to 87.5% (target - 250)
+      {'start': 0.5, 'end': 0.875, 'color': const Color(0xFFFFA726)},
+      // Optimal zone: 87.5% to 112.5% (target ± 100, but we'll make it ±12.5% for visibility)
+      {'start': 0.875, 'end': 1.125, 'color': const Color(0xFF66BB6A)},
+      // Acceptable high: 112.5% to 125% (target + 250)
+      {'start': 1.125, 'end': 1.25, 'color': const Color(0xFFFFA726)},
+      // Overeating: 125% to 150%
+      {'start': 1.25, 'end': 1.5, 'color': const Color(0xFFEF5350)},
+    ];
+
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Draw background track
+    paint.color = AppTheme.textLightGray.withValues(alpha: 0.15);
+    canvas.drawCircle(center, radius, paint);
+
+    // Draw zone markers
+    for (var zone in zones) {
+      final startAngle = -90 + ((zone['start'] as double) * 300); // Map to 300° arc
+      final sweepAngle = ((zone['end'] as double) - (zone['start'] as double)) * 300;
+      
+      paint.color = (zone['color'] as Color).withValues(alpha: 0.25);
+      
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle * (3.14159 / 180),
+        sweepAngle * (3.14159 / 180),
+        false,
+        paint,
+      );
+    }
+
+    // Draw zone dividers (subtle lines)
+    paint.strokeWidth = 2;
+    paint.color = AppTheme.glassWhite.withValues(alpha: 0.5);
+    
+    for (var zone in zones) {
+      if (zone['start'] != 0.0) {
+        final angle = -90 + ((zone['start'] as double) * 300);
+        final angleRad = angle * (3.14159 / 180);
+        
+        final innerRadius = radius - strokeWidth / 2;
+        final outerRadius = radius + strokeWidth / 2;
+        
+        final innerPoint = Offset(
+          center.dx + innerRadius * cos(angleRad),
+          center.dy + innerRadius * sin(angleRad),
+        );
+        final outerPoint = Offset(
+          center.dx + outerRadius * cos(angleRad),
+          center.dy + outerRadius * sin(angleRad),
+        );
+        
+        canvas.drawLine(innerPoint, outerPoint, paint);
+      }
+    }
+
+    // Draw target marker (small dot at 100%)
+    paint.strokeWidth = 1;
+    paint.style = PaintingStyle.fill;
+    paint.color = AppTheme.textBlack.withValues(alpha: 0.6);
+    
+    final targetAngle = -90 + (1.0 * 300); // 100% position
+    final targetAngleRad = targetAngle * (3.14159 / 180);
+    final targetPoint = Offset(
+      center.dx + radius * cos(targetAngleRad),
+      center.dy + radius * sin(targetAngleRad),
+    );
+    
+    canvas.drawCircle(targetPoint, 5, paint);
+    
+    // Inner circle for target marker
+    paint.color = AppTheme.glassWhite;
+    canvas.drawCircle(targetPoint, 3, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CalorieZonePainter oldDelegate) {
+    return oldDelegate.targetCalories != targetCalories;
+  }
+}
+
+// Custom painter for calorie progress
+class _CalorieProgressPainter extends CustomPainter {
+  final double targetCalories;
+  final double consumedCalories;
+  final Color zoneColor;
+
+  _CalorieProgressPainter({
+    required this.targetCalories,
+    required this.consumedCalories,
+    required this.zoneColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (consumedCalories <= 0) return;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2 - 10;
+    final strokeWidth = 12.0;
+
+    // Calculate progress as percentage of target (clamped to 150%)
+    final progressPercent = (consumedCalories / targetCalories).clamp(0.0, 1.5);
+    final sweepAngle = progressPercent * 300; // Map to 300° arc
+
+    // Draw progress arc with gradient
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Create gradient shader
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final gradient = SweepGradient(
+      startAngle: -90 * (3.14159 / 180),
+      endAngle: (-90 + sweepAngle) * (3.14159 / 180),
+      colors: [
+        zoneColor.withValues(alpha: 0.8),
+        zoneColor,
+      ],
+    );
+
+    paint.shader = gradient.createShader(rect);
+
+    canvas.drawArc(
+      rect,
+      -90 * (3.14159 / 180),
+      sweepAngle * (3.14159 / 180),
+      false,
+      paint,
+    );
+
+    // Draw progress indicator (dot at end)
+    paint.shader = null;
+    paint.style = PaintingStyle.fill;
+    paint.color = zoneColor;
+    
+    final endAngle = -90 + sweepAngle;
+    final endAngleRad = endAngle * (3.14159 / 180);
+    final endPoint = Offset(
+      center.dx + radius * cos(endAngleRad),
+      center.dy + radius * sin(endAngleRad),
+    );
+    
+    // Outer glow
+    paint.color = zoneColor.withValues(alpha: 0.3);
+    canvas.drawCircle(endPoint, 10, paint);
+    
+    // Middle layer
+    paint.color = zoneColor.withValues(alpha: 0.6);
+    canvas.drawCircle(endPoint, 7, paint);
+    
+    // Inner dot
+    paint.color = zoneColor;
+    canvas.drawCircle(endPoint, 5, paint);
+    
+    // Center white dot
+    paint.color = AppTheme.glassWhite;
+    canvas.drawCircle(endPoint, 2.5, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CalorieProgressPainter oldDelegate) {
+    return oldDelegate.consumedCalories != consumedCalories ||
+           oldDelegate.targetCalories != targetCalories ||
+           oldDelegate.zoneColor != zoneColor;
+  }
+}
+
+double cos(double radians) => dart_math.cos(radians);
+double sin(double radians) => dart_math.sin(radians);

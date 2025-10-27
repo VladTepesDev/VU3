@@ -4,6 +4,8 @@ import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../providers/menu_provider.dart';
+import '../providers/user_provider.dart';
+import '../services/storage_service.dart';
 import '../models/menu.dart';
 
 class MenusScreen extends StatelessWidget {
@@ -85,22 +87,49 @@ class MenusScreen extends StatelessWidget {
               ),
             ),
             
-            Consumer<MenuProvider>(
-              builder: (context, menuProvider, _) {
-                final predefinedMenus = menuProvider.predefinedMenus;
+            Consumer2<MenuProvider, UserProvider>(
+              builder: (context, menuProvider, userProvider, _) {
+                final user = userProvider.userProfile;
+                final storageService = context.read<StorageService>();
+                
+                List<Menu> availableMenus = [];
+                if (user != null) {
+                  availableMenus = storageService.generateMenusForUser(
+                    user.recommendedCalories,
+                    user.goal,
+                  );
+                } else {
+                  availableMenus = menuProvider.predefinedMenus;
+                }
+                
+                if (availableMenus.isEmpty) {
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: GlassContainer(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'Complete your profile to see personalized meal plans',
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  );
+                }
                 
                 return SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final menu = predefinedMenus[index];
+                        final menu = availableMenus[index];
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _buildMenuCard(context, menu, menuProvider),
                         );
                       },
-                      childCount: predefinedMenus.length,
+                      childCount: availableMenus.length,
                     ),
                   ),
                 );

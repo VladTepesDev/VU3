@@ -80,7 +80,7 @@ class StorageService {
   Future<List<Menu>> getMenus() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_menusKey);
-    if (jsonString == null) return _getDefaultMenus();
+    if (jsonString == null) return [];
     final jsonList = jsonDecode(jsonString) as List;
     return jsonList.map((e) => Menu.fromJson(e)).toList();
   }
@@ -116,290 +116,278 @@ class StorageService {
     return DateTime.parse(dateString);
   }
 
-  List<Menu> _getDefaultMenus() {
+  List<Menu> generateMenusForUser(double targetCalories, String goal) {
     return [
-      _getMaintenancePlan(),
-      _getMuscleGainPlan(),
-      _getWeightLossPlan(),
+      _generateBalancedPlan(targetCalories, goal),
+      _generateHighProteinPlan(targetCalories, goal),
+      _generateLowCarbPlan(targetCalories, goal),
     ];
   }
 
-  Menu _getMaintenancePlan() {
-    // 2000 kcal/day - Maintenance plan
+  Menu _generateBalancedPlan(double dailyCalories, String goal) {
     final meals = <MenuMeal>[];
+    
+    final breakfastCal = dailyCalories * 0.25;
+    final snack1Cal = dailyCalories * 0.10;
+    final lunchCal = dailyCalories * 0.30;
+    final snack2Cal = dailyCalories * 0.10;
+    final dinnerCal = dailyCalories * 0.25;
     
     for (int day = 1; day <= 7; day++) {
       meals.addAll([
         MenuMeal(
-          id: 'maint_d${day}_breakfast',
+          id: 'balanced_d${day}_breakfast',
           name: 'Breakfast',
-          calories: 450,
-          protein: 20,
-          carbs: 55,
-          fat: 15,
+          calories: breakfastCal,
+          protein: breakfastCal * 0.20 / 4,
+          carbs: breakfastCal * 0.50 / 4,
+          fat: breakfastCal * 0.30 / 9,
           mealType: 'breakfast',
           dayNumber: day,
           scheduledTime: '08:00',
           foods: [],
-          instructions: 'Target: 450 kcal, 20g protein, 55g carbs, 15g fat',
+          instructions: 'Target: ${breakfastCal.toInt()} kcal, balanced macros',
         ),
         MenuMeal(
-          id: 'maint_d${day}_lunch',
+          id: 'balanced_d${day}_snack1',
+          name: 'Morning Snack',
+          calories: snack1Cal,
+          protein: snack1Cal * 0.25 / 4,
+          carbs: snack1Cal * 0.50 / 4,
+          fat: snack1Cal * 0.25 / 9,
+          mealType: 'snack',
+          dayNumber: day,
+          scheduledTime: '10:30',
+          foods: [],
+          instructions: 'Target: ${snack1Cal.toInt()} kcal',
+        ),
+        MenuMeal(
+          id: 'balanced_d${day}_lunch',
           name: 'Lunch',
-          calories: 550,
-          protein: 35,
-          carbs: 60,
-          fat: 18,
+          calories: lunchCal,
+          protein: lunchCal * 0.30 / 4,
+          carbs: lunchCal * 0.40 / 4,
+          fat: lunchCal * 0.30 / 9,
           mealType: 'lunch',
           dayNumber: day,
           scheduledTime: '13:00',
           foods: [],
-          instructions: 'Target: 550 kcal, 35g protein, 60g carbs, 18g fat',
+          instructions: 'Target: ${lunchCal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'maint_d${day}_snack',
-          name: 'Snack',
-          calories: 250,
-          protein: 12,
-          carbs: 30,
-          fat: 8,
+          id: 'balanced_d${day}_snack2',
+          name: 'Afternoon Snack',
+          calories: snack2Cal,
+          protein: snack2Cal * 0.20 / 4,
+          carbs: snack2Cal * 0.50 / 4,
+          fat: snack2Cal * 0.30 / 9,
           mealType: 'snack',
           dayNumber: day,
           scheduledTime: '16:00',
           foods: [],
-          instructions: 'Target: 250 kcal, 12g protein, 30g carbs, 8g fat',
+          instructions: 'Target: ${snack2Cal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'maint_d${day}_dinner',
+          id: 'balanced_d${day}_dinner',
           name: 'Dinner',
-          calories: 600,
-          protein: 40,
-          carbs: 65,
-          fat: 20,
+          calories: dinnerCal,
+          protein: dinnerCal * 0.30 / 4,
+          carbs: dinnerCal * 0.40 / 4,
+          fat: dinnerCal * 0.30 / 9,
           mealType: 'dinner',
           dayNumber: day,
           scheduledTime: '19:00',
           foods: [],
-          instructions: 'Target: 600 kcal, 40g protein, 65g carbs, 20g fat',
-        ),
-        MenuMeal(
-          id: 'maint_d${day}_snack2',
-          name: 'Evening Snack',
-          calories: 150,
-          protein: 8,
-          carbs: 15,
-          fat: 6,
-          mealType: 'snack',
-          dayNumber: day,
-          scheduledTime: '21:00',
-          foods: [],
-          instructions: 'Target: 150 kcal, 8g protein, 15g carbs, 6g fat',
+          instructions: 'Target: ${dinnerCal.toInt()} kcal',
         ),
       ]);
     }
 
     return Menu(
-      id: 'maintenance_2000',
-      name: 'Balanced Maintenance Plan',
-      description: '~2000 kcal/day - Perfect for maintaining current weight with balanced nutrition',
+      id: 'balanced_plan',
+      name: 'Balanced Plan',
+      description: '~${dailyCalories.toInt()} kcal/day - Balanced nutrition for ${goal.replaceAll('_', ' ')}',
       durationDays: 7,
       meals: meals,
     );
   }
 
-  Menu _getMuscleGainPlan() {
-    // 2500 kcal/day - Muscle building plan
+  Menu _generateHighProteinPlan(double dailyCalories, String goal) {
     final meals = <MenuMeal>[];
+    
+    final breakfastCal = dailyCalories * 0.25;
+    final snack1Cal = dailyCalories * 0.12;
+    final lunchCal = dailyCalories * 0.30;
+    final snack2Cal = dailyCalories * 0.10;
+    final dinnerCal = dailyCalories * 0.23;
     
     for (int day = 1; day <= 7; day++) {
       meals.addAll([
         MenuMeal(
-          id: 'muscle_d${day}_breakfast',
+          id: 'protein_d${day}_breakfast',
           name: 'Breakfast',
-          calories: 550,
-          protein: 35,
-          carbs: 65,
-          fat: 16,
+          calories: breakfastCal,
+          protein: breakfastCal * 0.35 / 4,
+          carbs: breakfastCal * 0.40 / 4,
+          fat: breakfastCal * 0.25 / 9,
           mealType: 'breakfast',
           dayNumber: day,
           scheduledTime: '07:30',
           foods: [],
-          instructions: 'Target: 550 kcal, 35g protein, 65g carbs, 16g fat',
+          instructions: 'Target: ${breakfastCal.toInt()} kcal, high protein',
         ),
         MenuMeal(
-          id: 'muscle_d${day}_snack1',
+          id: 'protein_d${day}_snack1',
           name: 'Mid-Morning Snack',
-          calories: 350,
-          protein: 30,
-          carbs: 35,
-          fat: 8,
+          calories: snack1Cal,
+          protein: snack1Cal * 0.50 / 4,
+          carbs: snack1Cal * 0.35 / 4,
+          fat: snack1Cal * 0.15 / 9,
           mealType: 'snack',
           dayNumber: day,
           scheduledTime: '10:30',
           foods: [],
-          instructions: 'Target: 350 kcal, 30g protein, 35g carbs, 8g fat',
+          instructions: 'Target: ${snack1Cal.toInt()} kcal, protein-rich',
         ),
         MenuMeal(
-          id: 'muscle_d${day}_lunch',
+          id: 'protein_d${day}_lunch',
           name: 'Lunch',
-          calories: 700,
-          protein: 50,
-          carbs: 75,
-          fat: 20,
+          calories: lunchCal,
+          protein: lunchCal * 0.35 / 4,
+          carbs: lunchCal * 0.40 / 4,
+          fat: lunchCal * 0.25 / 9,
           mealType: 'lunch',
           dayNumber: day,
           scheduledTime: '13:00',
           foods: [],
-          instructions: 'Target: 700 kcal, 50g protein, 75g carbs, 20g fat',
+          instructions: 'Target: ${lunchCal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'muscle_d${day}_snack2',
+          id: 'protein_d${day}_snack2',
           name: 'Pre-Workout Snack',
-          calories: 300,
-          protein: 25,
-          carbs: 35,
-          fat: 6,
+          calories: snack2Cal,
+          protein: snack2Cal * 0.40 / 4,
+          carbs: snack2Cal * 0.45 / 4,
+          fat: snack2Cal * 0.15 / 9,
           mealType: 'snack',
           dayNumber: day,
           scheduledTime: '16:00',
           foods: [],
-          instructions: 'Target: 300 kcal, 25g protein, 35g carbs, 6g fat',
+          instructions: 'Target: ${snack2Cal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'muscle_d${day}_dinner',
+          id: 'protein_d${day}_dinner',
           name: 'Dinner',
-          calories: 650,
-          protein: 45,
-          carbs: 70,
-          fat: 18,
+          calories: dinnerCal,
+          protein: dinnerCal * 0.40 / 4,
+          carbs: dinnerCal * 0.35 / 4,
+          fat: dinnerCal * 0.25 / 9,
           mealType: 'dinner',
           dayNumber: day,
           scheduledTime: '19:30',
           foods: [],
-          instructions: 'Target: 650 kcal, 45g protein, 70g carbs, 18g fat',
-        ),
-        MenuMeal(
-          id: 'muscle_d${day}_snack3',
-          name: 'Evening Snack',
-          calories: 250,
-          protein: 20,
-          carbs: 20,
-          fat: 10,
-          mealType: 'snack',
-          dayNumber: day,
-          scheduledTime: '21:30',
-          foods: [],
-          instructions: 'Target: 250 kcal, 20g protein, 20g carbs, 10g fat',
+          instructions: 'Target: ${dinnerCal.toInt()} kcal',
         ),
       ]);
     }
 
     return Menu(
-      id: 'muscle_gain_2500',
-      name: 'Muscle Building Plan',
-      description: '~2500 kcal/day - High protein for muscle growth and recovery',
+      id: 'high_protein_plan',
+      name: 'High Protein Plan',
+      description: '~${dailyCalories.toInt()} kcal/day - 35-40% protein for muscle building',
       durationDays: 7,
       meals: meals,
     );
   }
 
-  Menu _getWeightLossPlan() {
-    // 1500 kcal/day - Weight loss plan
+  Menu _generateLowCarbPlan(double dailyCalories, String goal) {
     final meals = <MenuMeal>[];
+    
+    final breakfastCal = dailyCalories * 0.20;
+    final snack1Cal = dailyCalories * 0.10;
+    final lunchCal = dailyCalories * 0.35;
+    final snack2Cal = dailyCalories * 0.10;
+    final dinnerCal = dailyCalories * 0.25;
     
     for (int day = 1; day <= 7; day++) {
       meals.addAll([
         MenuMeal(
-          id: 'loss_d${day}_breakfast',
+          id: 'lowcarb_d${day}_breakfast',
           name: 'Breakfast',
-          calories: 300,
-          protein: 25,
-          carbs: 30,
-          fat: 10,
+          calories: breakfastCal,
+          protein: breakfastCal * 0.35 / 4,
+          carbs: breakfastCal * 0.20 / 4,
+          fat: breakfastCal * 0.45 / 9,
           mealType: 'breakfast',
           dayNumber: day,
           scheduledTime: '08:00',
           foods: [],
-          instructions: 'Target: 300 kcal, 25g protein, 30g carbs, 10g fat',
+          instructions: 'Target: ${breakfastCal.toInt()} kcal, low carb',
         ),
         MenuMeal(
-          id: 'loss_d${day}_snack1',
+          id: 'lowcarb_d${day}_snack1',
           name: 'Morning Snack',
-          calories: 150,
-          protein: 10,
-          carbs: 15,
-          fat: 5,
+          calories: snack1Cal,
+          protein: snack1Cal * 0.30 / 4,
+          carbs: snack1Cal * 0.15 / 4,
+          fat: snack1Cal * 0.55 / 9,
           mealType: 'snack',
           dayNumber: day,
           scheduledTime: '10:30',
           foods: [],
-          instructions: 'Target: 150 kcal, 10g protein, 15g carbs, 5g fat',
+          instructions: 'Target: ${snack1Cal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'loss_d${day}_lunch',
+          id: 'lowcarb_d${day}_lunch',
           name: 'Lunch',
-          calories: 400,
-          protein: 35,
-          carbs: 35,
-          fat: 12,
+          calories: lunchCal,
+          protein: lunchCal * 0.40 / 4,
+          carbs: lunchCal * 0.20 / 4,
+          fat: lunchCal * 0.40 / 9,
           mealType: 'lunch',
           dayNumber: day,
           scheduledTime: '13:00',
           foods: [],
-          instructions: 'Target: 400 kcal, 35g protein, 35g carbs, 12g fat',
+          instructions: 'Target: ${lunchCal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'loss_d${day}_snack2',
+          id: 'lowcarb_d${day}_snack2',
           name: 'Afternoon Snack',
-          calories: 120,
-          protein: 8,
-          carbs: 12,
-          fat: 4,
+          calories: snack2Cal,
+          protein: snack2Cal * 0.30 / 4,
+          carbs: snack2Cal * 0.15 / 4,
+          fat: snack2Cal * 0.55 / 9,
           mealType: 'snack',
           dayNumber: day,
           scheduledTime: '16:00',
           foods: [],
-          instructions: 'Target: 120 kcal, 8g protein, 12g carbs, 4g fat',
+          instructions: 'Target: ${snack2Cal.toInt()} kcal',
         ),
         MenuMeal(
-          id: 'loss_d${day}_dinner',
+          id: 'lowcarb_d${day}_dinner',
           name: 'Dinner',
-          calories: 450,
-          protein: 40,
-          carbs: 35,
-          fat: 15,
+          calories: dinnerCal,
+          protein: dinnerCal * 0.40 / 4,
+          carbs: dinnerCal * 0.15 / 4,
+          fat: dinnerCal * 0.45 / 9,
           mealType: 'dinner',
           dayNumber: day,
           scheduledTime: '19:00',
           foods: [],
-          instructions: 'Target: 450 kcal, 40g protein, 35g carbs, 15g fat',
-        ),
-        MenuMeal(
-          id: 'loss_d${day}_snack3',
-          name: 'Evening Snack',
-          calories: 80,
-          protein: 6,
-          carbs: 8,
-          fat: 2,
-          mealType: 'snack',
-          dayNumber: day,
-          scheduledTime: '21:00',
-          foods: [],
-          instructions: 'Target: 80 kcal, 6g protein, 8g carbs, 2g fat',
+          instructions: 'Target: ${dinnerCal.toInt()} kcal',
         ),
       ]);
     }
 
     return Menu(
-      id: 'weight_loss_1500',
-      name: 'Weight Loss Plan',
-      description: '~1500 kcal/day - Calorie deficit for healthy weight loss (~0.5kg per week)',
+      id: 'low_carb_plan',
+      name: 'Low Carb Plan',
+      description: '~${dailyCalories.toInt()} kcal/day - 15-20% carbs for fat loss',
       durationDays: 7,
       meals: meals,
     );
   }
 
-  // Notification Settings
   Future<void> saveNotificationSettings(NotificationSettings settings) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_notificationSettingsKey, jsonEncode(settings.toJson()));
