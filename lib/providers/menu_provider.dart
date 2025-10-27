@@ -77,12 +77,20 @@ class MenuProvider extends ChangeNotifier {
   }
 
   Future<void> setActiveMenu(Menu? menu) async {
+    final bool planChanged = _activeMenu?.id != menu?.id;
+    
     _activeMenu = menu;
     _menuStartDate = menu != null ? DateTime.now() : null;
     
     // Persist to storage
     await _storageService.saveActiveMenuId(menu?.id);
     await _storageService.saveMenuStartDate(_menuStartDate);
+    
+    // Clear old meal logs when switching plans
+    if (planChanged && menu != null) {
+      _mealLogs.clear();
+      await _storageService.saveMealLogs(_mealLogs);
+    }
     
     if (menu != null) {
       await _generateMealLogsForActiveMenu();
@@ -271,6 +279,27 @@ class MenuProvider extends ChangeNotifier {
       log.scheduledDate.day == todayStart.day &&
       log.status == MealLogStatus.completed
     ).toList();
+  }
+
+  Map<String, double> getTodayConsumedFromPlan() {
+    double calories = 0;
+    double protein = 0;
+    double carbs = 0;
+    double fat = 0;
+    
+    for (var log in todayCompletedLogs) {
+      calories += log.actualCalories ?? 0;
+      protein += log.actualProtein ?? 0;
+      carbs += log.actualCarbs ?? 0;
+      fat += log.actualFat ?? 0;
+    }
+    
+    return {
+      'calories': calories,
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+    };
   }
 
   Future<void> markMealAsMissed(String menuMealId) async {

@@ -57,16 +57,57 @@ class UserProfile {
     return bmr * multiplier;
   }
 
-  // Calculate recommended daily calories based on goal
   double get recommendedCalories {
     switch (goal) {
       case 'lose_weight':
-        return tdee - 500; // 500 calorie deficit for ~0.5kg/week loss
+        return tdee - 500;
       case 'gain_muscle':
-        return tdee + 300; // 300 calorie surplus for muscle gain
+        return tdee + 300;
       case 'maintain_weight':
       default:
         return tdee;
+    }
+  }
+
+  Map<String, double> get optimalRange {
+    final target = recommendedCalories;
+    return {
+      'min': target - 100,
+      'max': target + 100,
+    };
+  }
+
+  Map<String, double> get acceptableRange {
+    final target = recommendedCalories;
+    return {
+      'min': target - 250,
+      'max': target + 250,
+    };
+  }
+
+  String getCalorieZone(double calories) {
+    final optimal = optimalRange;
+    final acceptable = acceptableRange;
+    
+    if (calories >= optimal['min']! && calories <= optimal['max']!) {
+      return 'optimal';
+    } else if (calories >= acceptable['min']! && calories <= acceptable['max']!) {
+      return 'acceptable';
+    } else {
+      return 'excessive';
+    }
+  }
+
+  String getZoneDescription(String zone) {
+    switch (zone) {
+      case 'optimal':
+        return 'Perfect Range';
+      case 'acceptable':
+        return 'Acceptable Range';
+      case 'excessive':
+        return 'Out of Range';
+      default:
+        return 'Unknown';
     }
   }
 

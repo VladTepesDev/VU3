@@ -101,11 +101,13 @@ class MealProvider extends ChangeNotifier {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
 
+    // Start with manually logged meals (from add meal screen)
     double calories = todayMeals?.totalCalories ?? 0;
     double protein = todayMeals?.totalProtein ?? 0;
     double carbs = todayMeals?.totalCarbs ?? 0;
     double fat = todayMeals?.totalFat ?? 0;
 
+    // Add completed plan meals (from menu/plan quick log)
     final todayLogs = _mealLogs.where((log) =>
       log.scheduledDate.year == todayStart.year &&
       log.scheduledDate.month == todayStart.month &&
@@ -114,6 +116,7 @@ class MealProvider extends ChangeNotifier {
     );
 
     for (var log in todayLogs) {
+      // Use actual values if provided, otherwise use the plan's target values
       calories += log.actualCalories ?? 0;
       protein += log.actualProtein ?? 0;
       carbs += log.actualCarbs ?? 0;

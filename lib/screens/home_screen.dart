@@ -45,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Hello there! 👋',
+                      'Hello there!',
                       style: Theme.of(context).textTheme.displaySmall,
                     ),
                     const SizedBox(height: 8),
@@ -88,18 +88,44 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, userProvider, mealProvider, menuProvider, child) {
         final user = userProvider.userProfile;
         final macros = mealProvider.getTodayMacros();
+        final consumedCalories = macros['calories'] ?? 0;
         
-        // Use recommended calories from user profile or plan target
         final targetCalories = user?.recommendedCalories ?? 
                                menuProvider.getTodayTargetCalories();
-        final consumedCalories = macros['calories'] ?? 0;
-        final percentage = (consumedCalories / targetCalories * 100).clamp(0, 100);
+        
+        String zone = 'acceptable';
+        Color zoneColor = const Color(0xFFFFA726);
+        
+        if (user != null && consumedCalories > 0) {
+          zone = user.getCalorieZone(consumedCalories);
+          zoneColor = zone == 'optimal' 
+              ? const Color(0xFF66BB6A)
+              : zone == 'acceptable' 
+                  ? const Color(0xFFFFA726)
+                  : const Color(0xFFEF5350);
+        } else if (consumedCalories > 0) {
+          final diff = (consumedCalories - targetCalories).abs();
+          if (diff <= 100) {
+            zone = 'optimal';
+            zoneColor = const Color(0xFF66BB6A);
+          } else if (diff <= 250) {
+            zone = 'acceptable';
+            zoneColor = const Color(0xFFFFA726);
+          } else {
+            zone = 'excessive';
+            zoneColor = const Color(0xFFEF5350);
+          }
+        } else {
+          zoneColor = AppTheme.textGray;
+        }
+        
+        final optimalMin = user?.optimalRange['min'] ?? (targetCalories - 100);
+        final optimalMax = user?.optimalRange['max'] ?? (targetCalories + 100);
 
         return GlassContainer(
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           child: Column(
             children: [
-              // Plan info if active
               if (menuProvider.activeMenu != null) ...[
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Circular Progress - centered
               Center(
                 child: Stack(
                   alignment: Alignment.center,
@@ -136,14 +161,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: 180,
                       height: 180,
                       child: CircularProgressIndicator(
-                        value: percentage / 100,
+                        value: (consumedCalories / targetCalories).clamp(0.0, 1.0),
                         strokeWidth: 14,
                         backgroundColor: AppTheme.textLightGray.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          percentage > 100
-                              ? AppTheme.textGray
-                              : AppTheme.textBlack,
-                        ),
+                        valueColor: AlwaysStoppedAnimation<Color>(zoneColor),
                       ),
                     ),
                     Column(
@@ -152,15 +173,33 @@ class _HomeScreenState extends State<HomeScreen> {
                           '${consumedCalories.toInt()}',
                           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                             fontWeight: FontWeight.w700,
+                            color: consumedCalories > 0 ? zoneColor : AppTheme.textGray,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text(
-                          'of ${targetCalories.toInt()}',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppTheme.textGray,
+                        if (user != null && consumedCalories > 0) ...[
+                          Text(
+                            user.getZoneDescription(zone),
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: zoneColor,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${optimalMin.toInt()}-${optimalMax.toInt()} kcal',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.textGray,
+                            ),
+                          ),
+                        ] else ...[
+                          Text(
+                            'of ${targetCalories.toInt()}',
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                              color: AppTheme.textGray,
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 2),
                         Text(
                           'kcal',
