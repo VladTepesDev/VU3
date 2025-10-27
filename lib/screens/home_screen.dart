@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'dart:io';
 import 'dart:math' as dart_math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
 import '../providers/menu_provider.dart';
 import '../models/meal_log.dart';
+import 'edit_meal_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -154,8 +156,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // Zone markers background
                     SizedBox(
-                      width: 200,
-                      height: 200,
+                      width: 240,
+                      height: 240,
                       child: CustomPaint(
                         painter: _CalorieZonePainter(
                           targetCalories: targetCalories,
@@ -164,8 +166,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     // Actual progress
                     SizedBox(
-                      width: 200,
-                      height: 200,
+                      width: 240,
+                      height: 240,
                       child: CustomPaint(
                         painter: _CalorieProgressPainter(
                           targetCalories: targetCalories,
@@ -182,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           '${consumedCalories.toInt()}',
                           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                             fontWeight: FontWeight.w700,
-                            fontSize: 52,
+                            fontSize: 56,
                             color: consumedCalories > 0 ? zoneColor : AppTheme.textGray,
                           ),
                         ),
@@ -191,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           'kcal',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textGray,
-                            fontSize: 14,
+                            fontSize: 15,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -1111,72 +1113,88 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 16),
             ...todayMeals.meals.map((meal) => Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: GlassContainer(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    if (meal.imagePath != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          meal.imagePath!,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditMealScreen(meal: meal),
+                    ),
+                  );
+                },
+                child: GlassContainer(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      if (meal.imagePath != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(meal.imagePath!),
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.textGray.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.restaurant),
+                              );
+                            },
+                          ),
+                        )
+                      else
+                        Container(
                           width: 60,
                           height: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: AppTheme.textGray.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(Icons.restaurant),
-                            );
-                          },
+                          decoration: BoxDecoration(
+                            color: AppTheme.textGray.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(Icons.restaurant),
                         ),
-                      )
-                    else
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              meal.name,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Text(
+                              '${meal.calories.toInt()} kcal',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                        ),
+                      ),
                       Container(
-                        width: 60,
-                        height: 60,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.textGray.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(Icons.restaurant),
+                        child: Text(
+                          meal.mealType,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                       ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            meal.name,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          Text(
-                            '${meal.calories.toInt()} kcal',
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ],
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.edit,
+                        size: 18,
+                        color: AppTheme.textGray.withValues(alpha: 0.7),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.textGray.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        meal.mealType,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             )),

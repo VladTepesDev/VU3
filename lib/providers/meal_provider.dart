@@ -49,6 +49,30 @@ class MealProvider extends ChangeNotifier {
     await _loadMeals();
   }
 
+  Future<void> updateMeal(String mealId, Meal updatedMeal) async {
+    final today = DateTime.now();
+    final todayStart = DateTime(today.year, today.month, today.day);
+
+    final todayIndex = _dailyMealsList.indexWhere((dm) =>
+        dm.date.year == todayStart.year &&
+        dm.date.month == todayStart.month &&
+        dm.date.day == todayStart.day);
+
+    if (todayIndex >= 0) {
+      final updatedMeals = _dailyMealsList[todayIndex].meals.map((meal) {
+        return meal.id == mealId ? updatedMeal : meal;
+      }).toList();
+
+      _dailyMealsList[todayIndex] = DailyMeals(
+        date: todayStart,
+        meals: updatedMeals,
+      );
+
+      await _storageService.saveMeals(_dailyMealsList);
+      notifyListeners();
+    }
+  }
+
   Future<void> deleteMeal(String mealId) async {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
