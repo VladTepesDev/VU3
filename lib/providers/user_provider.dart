@@ -25,6 +25,7 @@ class UserProvider extends ChangeNotifier {
     required double weight,
     String activityLevel = 'moderate',
     double? targetWeight,
+    String goal = 'maintain_weight',
   }) async {
     _userProfile = UserProfile(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -35,6 +36,7 @@ class UserProvider extends ChangeNotifier {
       createdAt: DateTime.now(),
       activityLevel: activityLevel,
       targetWeight: targetWeight,
+      goal: goal,
       weightHistory: [
         WeightEntry(
           date: DateTime.now(),

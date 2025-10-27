@@ -134,4 +134,129 @@ class MealProvider extends ChangeNotifier {
 
     return todayMeals.meals.where((meal) => meal.mealType == type).toList();
   }
+
+  // Get average daily calories for a specific period
+  double getAverageCalories({int days = 7}) {
+    final now = DateTime.now();
+    final cutoffDate = now.subtract(Duration(days: days));
+    
+    final recentMeals = _dailyMealsList
+        .where((dm) => dm.date.isAfter(cutoffDate))
+        .toList();
+    
+    if (recentMeals.isEmpty) return 0;
+    
+    double totalCalories = 0;
+    for (var dm in recentMeals) {
+      totalCalories += dm.totalCalories;
+    }
+    
+    // Include meal logs
+    final cutoffStart = DateTime(cutoffDate.year, cutoffDate.month, cutoffDate.day);
+    final recentLogs = _mealLogs.where((log) =>
+      log.scheduledDate.isAfter(cutoffStart) &&
+      log.status == MealLogStatus.completed
+    );
+    
+    for (var log in recentLogs) {
+      totalCalories += log.actualCalories ?? 0;
+    }
+    
+    return totalCalories / days;
+  }
+
+  // Get macro distribution percentage
+  Map<String, double> getMacroDistribution({int days = 7}) {
+    final now = DateTime.now();
+    final cutoffDate = now.subtract(Duration(days: days));
+    
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFat = 0;
+    
+    final recentMeals = _dailyMealsList
+        .where((dm) => dm.date.isAfter(cutoffDate))
+        .toList();
+    
+    for (var dm in recentMeals) {
+      totalProtein += dm.totalProtein;
+      totalCarbs += dm.totalCarbs;
+      totalFat += dm.totalFat;
+    }
+    
+    // Include meal logs
+    final cutoffStart = DateTime(cutoffDate.year, cutoffDate.month, cutoffDate.day);
+    final recentLogs = _mealLogs.where((log) =>
+      log.scheduledDate.isAfter(cutoffStart) &&
+      log.status == MealLogStatus.completed
+    );
+    
+    for (var log in recentLogs) {
+      totalProtein += log.actualProtein ?? 0;
+      totalCarbs += log.actualCarbs ?? 0;
+      totalFat += log.actualFat ?? 0;
+    }
+    
+    final totalMacros = totalProtein + totalCarbs + totalFat;
+    if (totalMacros == 0) {
+      return {'protein': 0, 'carbs': 0, 'fat': 0};
+    }
+    
+    return {
+      'protein': (totalProtein / totalMacros * 100),
+      'carbs': (totalCarbs / totalMacros * 100),
+      'fat': (totalFat / totalMacros * 100),
+    };
+  }
+
+  // Get total days tracked
+  int getTotalDaysTracked() {
+    if (_dailyMealsList.isEmpty && _mealLogs.isEmpty) return 0;
+    
+    final uniqueDates = <DateTime>{};
+    
+    for (var dm in _dailyMealsList) {
+      uniqueDates.add(DateTime(dm.date.year, dm.date.month, dm.date.day));
+    }
+    
+    for (var log in _mealLogs.where((l) => l.status == MealLogStatus.completed)) {
+      uniqueDates.add(DateTime(
+        log.scheduledDate.year,
+        log.scheduledDate.month,
+        log.scheduledDate.day,
+      ));
+    }
+    
+    return uniqueDates.length;
+  }
+
+  // Get tracking streak (consecutive days)
+  int getCurrentStreak() {
+    final now = DateTime.now();
+    final trackedDates = <DateTime>{};
+    
+    for (var dm in _dailyMealsList.where((dm) => dm.meals.isNotEmpty)) {
+      trackedDates.add(DateTime(dm.date.year, dm.date.month, dm.date.day));
+    }
+    
+    for (var log in _mealLogs.where((l) => l.status == MealLogStatus.completed)) {
+      trackedDates.add(DateTime(
+        log.scheduledDate.year,
+        log.scheduledDate.month,
+        log.scheduledDate.day,
+      ));
+    }
+    
+    if (trackedDates.isEmpty) return 0;
+    
+    int streak = 0;
+    var checkDate = DateTime(now.year, now.month, now.day);
+    
+    while (trackedDates.contains(checkDate)) {
+      streak++;
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    }
+    
+    return streak;
+  }
 }

@@ -402,6 +402,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       }
       
       final userProvider = context.read<UserProvider>();
+      final storageService = context.read<StorageService>();
+      final navigator = Navigator.of(context);
+      
       await userProvider.createProfile(
         gender: _selectedGender,
         age: int.parse(_ageController.text),
@@ -410,16 +413,15 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         activityLevel: _activityLevel,
       );
       
-      final storageService = context.read<StorageService>();
       await storageService.setFirstLaunchComplete();
       
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigation(),
-          ),
-        );
-      }
+      if (!mounted) return;
+      
+      navigator.pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => const MainNavigation(),
+        ),
+      );
     }
   }
 }

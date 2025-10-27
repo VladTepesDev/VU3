@@ -84,11 +84,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildTodaysSummary(BuildContext context) {
-    return Consumer2<UserProvider, MealProvider>(
-      builder: (context, userProvider, mealProvider, child) {
+    return Consumer3<UserProvider, MealProvider, MenuProvider>(
+      builder: (context, userProvider, mealProvider, menuProvider, child) {
         final user = userProvider.userProfile;
         final macros = mealProvider.getTodayMacros();
-        final targetCalories = user?.tdee ?? 2000;
+        
+        // Use recommended calories from user profile or plan target
+        final targetCalories = user?.recommendedCalories ?? 
+                               menuProvider.getTodayTargetCalories();
         final consumedCalories = macros['calories'] ?? 0;
         final percentage = (consumedCalories / targetCalories * 100).clamp(0, 100);
 
@@ -96,6 +99,25 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           child: Column(
             children: [
+              // Plan info if active
+              if (menuProvider.activeMenu != null) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.menu_book, size: 16, color: AppTheme.textGray),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${menuProvider.activeMenu!.name} - Day ${menuProvider.getCurrentPlanDay()}/${menuProvider.activeMenu!.durationDays}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textGray,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+              
               Text(
                 'Today\'s Calories',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -160,6 +182,31 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              
+              // Show adherence if on a plan
+              if (menuProvider.activeMenu != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.textBlack.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.track_changes, size: 18, color: AppTheme.textBlack),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${menuProvider.getPlanAdherence().toInt()}% Plan Adherence',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ],
           ),
         );
@@ -273,6 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () => _showLogMealDialog(context, meal, menuProvider),
                   child: GlassContainer(
                     padding: const EdgeInsets.all(18),
+                    color: status == MealLogStatus.completed 
+                        ? const Color(0xFFE8F5E9) // Soft green when completed
+                        : null,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -589,17 +639,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         carbs: meal.carbs,
                         fat: meal.fat,
                       );
-                      if (context.mounted) {
-                        await context.read<MealProvider>().refreshMealLogs();
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('✓ ${meal.name} logged!'),
-                            backgroundColor: AppTheme.textBlack,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      }
+                      if (!context.mounted) return;
+                      
+                      await context.read<MealProvider>().refreshMealLogs();
+                      if (!context.mounted) return;
+                      
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('✓ ${meal.name} logged!'),
+                          backgroundColor: AppTheme.textBlack,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
                     },
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -643,10 +695,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   GlassButton(
                     onPressed: () async {
                       await menuProvider.markMealAsMissed(meal.id);
-                      if (context.mounted) {
-                        await context.read<MealProvider>().refreshMealLogs();
-                        Navigator.pop(context);
-                      }
+                      if (!context.mounted) return;
+                      
+                      await context.read<MealProvider>().refreshMealLogs();
+                      if (!context.mounted) return;
+                      
+                      Navigator.pop(context);
                     },
                     child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -718,8 +772,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildWaterTracker(BuildContext context) {
     return Consumer<WaterProvider>(
       builder: (context, waterProvider, _) {
+        final isComplete = waterProvider.glassesConsumed >= waterProvider.dailyGoal;
+        
         return GlassContainer(
           padding: const EdgeInsets.all(20),
+          color: isComplete ? const Color(0xFFE8F5E9) : null, // Soft green when complete
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -766,34 +823,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: GlassButton(
-                      onPressed: () => waterProvider.addGlass(),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      isPrimary: true,
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.add, size: 20),
-                          SizedBox(width: 8),
-                          Text('Add Glass'),
-                        ],
+              if (!isComplete)
+                Row(
+                  children: [
+                    Expanded(
+                      child: GlassButton(
+                        onPressed: () => waterProvider.addGlass(),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add, size: 20),
+                            SizedBox(width: 8),
+                            Text('Add Glass'),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  GlassButton(
-                    onPressed: () => waterProvider.removeGlass(),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                    const SizedBox(width: 12),
+                    GlassButton(
+                      onPressed: () => waterProvider.removeGlass(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      child: const Icon(Icons.remove, size: 20),
                     ),
-                    child: const Icon(Icons.remove, size: 20),
+                  ],
+                )
+              else
+                GlassButton(
+                  onPressed: () => waterProvider.removeGlass(),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.remove, size: 20),
+                      SizedBox(width: 8),
+                      Text('Remove Glass'),
+                    ],
                   ),
-                ],
-              ),
+                ),
             ],
           ),
         );

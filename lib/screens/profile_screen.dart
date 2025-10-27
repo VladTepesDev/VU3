@@ -78,7 +78,47 @@ class ProfileScreen extends StatelessWidget {
                   Text(
                     user.gender == 'male' ? 'Male' : 'Female',
                     style: Theme.of(context).textTheme.bodyMedium,
-                  ),                          const SizedBox(height: 24),
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Goal badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.textBlack.withValues(alpha: 0.1),
+                          AppTheme.textGray.withValues(alpha: 0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppTheme.textBlack.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          user.goal == 'lose_weight' ? Icons.trending_down :
+                          user.goal == 'gain_muscle' ? Icons.trending_up :
+                          Icons.remove,
+                          size: 16,
+                          color: AppTheme.textBlack,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          user.goalDescription,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 24),
 
                           // Stats Row
                           Row(
@@ -187,7 +227,10 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: Consumer<UserProvider>(
                 builder: (context, userProvider, _) {
-                  final progress = userProvider.getWeightProgress();                    return Column(
+                  final progress = userProvider.getWeightProgress();
+                  final user = userProvider.userProfile;
+                  
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -200,10 +243,35 @@ class ProfileScreen extends StatelessWidget {
                           child: Column(
                             children: [
                               if (progress != null) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildWeightStat(
+                                      context,
+                                      'Start',
+                                      '${user!.weightHistory.first.weight.toStringAsFixed(1)} kg',
+                                      Icons.flag,
+                                    ),
+                                    _buildWeightStat(
+                                      context,
+                                      'Current',
+                                      '${user.weight.toStringAsFixed(1)} kg',
+                                      Icons.monitor_weight,
+                                    ),
+                                    if (user.targetWeight != null)
+                                      _buildWeightStat(
+                                        context,
+                                        'Target',
+                                        '${user.targetWeight!.toStringAsFixed(1)} kg',
+                                        Icons.emoji_events,
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
                                 Text(
                                   '${progress > 0 ? '-' : '+'}${progress.abs().toStringAsFixed(1)} kg',
                                   style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                    color: AppTheme.textBlack,
+                                    color: progress > 0 ? Colors.green : Colors.orange,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -212,6 +280,39 @@ class ProfileScreen extends StatelessWidget {
                                   'Since you started',
                                   style: Theme.of(context).textTheme.bodyMedium,
                                 ),
+                                
+                                // Progress towards goal
+                                if (user.targetWeight != null && user.weightProgressPercent != null) ...[
+                                  const SizedBox(height: 16),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: LinearProgressIndicator(
+                                      value: (user.weightProgressPercent! / 100).clamp(0.0, 1.0),
+                                      minHeight: 10,
+                                      backgroundColor: AppTheme.textLightGray.withValues(alpha: 0.3),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.green.shade600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '${user.weightProgressPercent!.toInt()}% to goal',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.textGray,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (user.estimatedDaysToGoal != null) ...[
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Est. ${user.estimatedDaysToGoal} days to reach goal',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                        color: AppTheme.textGray,
+                                      ),
+                                    ),
+                                  ],
+                                ],
                                 const SizedBox(height: 16),
                               ],
                               GlassButton(
@@ -236,8 +337,12 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(20.0),
               child: Consumer<MealProvider>(
                 builder: (context, mealProvider, _) {
-                  final avgCalories = mealProvider.getWeeklyAverageCalories();
-                  final weekMeals = mealProvider.getWeekMeals();                    return Column(
+                  final avgCalories = mealProvider.getAverageCalories(days: 7);
+                  final totalDays = mealProvider.getTotalDaysTracked();
+                  final streak = mealProvider.getCurrentStreak();
+                  final macros = mealProvider.getMacroDistribution(days: 7);
+                  
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -245,48 +350,81 @@ class ProfileScreen extends StatelessWidget {
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GlassContainer(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  children: [
-                                    Text(
+                        GlassContainer(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      context,
                                       '${avgCalories.toInt()}',
-                                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                      'Avg Daily\nCalories',
+                                      Icons.local_fire_department,
                                     ),
-                                    Text(
-                                      'Avg Calories',
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      context,
+                                      '$totalDays',
+                                      'Days\nTracked',
+                                      Icons.calendar_today,
                                     ),
-                                  ],
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _buildStatCard(
+                                      context,
+                                      '$streak',
+                                      'Day\nStreak',
+                                      Icons.local_fire_department_outlined,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'Macro Distribution (7 days)',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: GlassContainer(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      '${weekMeals.length}',
-                                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildMacroBar(
+                                          context,
+                                          'Protein',
+                                          macros['protein'] ?? 0,
+                                          Colors.blue,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        _buildMacroBar(
+                                          context,
+                                          'Carbs',
+                                          macros['carbs'] ?? 0,
+                                          Colors.orange,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        _buildMacroBar(
+                                          context,
+                                          'Fat',
+                                          macros['fat'] ?? 0,
+                                          Colors.purple,
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      'Days Tracked',
-                                      style: Theme.of(context).textTheme.bodySmall,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ],
                     );
@@ -346,6 +484,93 @@ class ProfileScreen extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeightStat(BuildContext context, String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, size: 24, color: AppTheme.textGray),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppTheme.textGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(BuildContext context, String value, String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.glassGray.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.borderGray,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 28, color: AppTheme.textBlack),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              height: 1.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMacroBar(BuildContext context, String label, double percentage, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            Text(
+              '${percentage.toInt()}%',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: percentage / 100,
+            minHeight: 8,
+            backgroundColor: color.withValues(alpha: 0.2),
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
         ),
       ],
     );

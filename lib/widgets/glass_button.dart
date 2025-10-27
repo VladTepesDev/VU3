@@ -199,19 +199,19 @@ class _GlassIconButtonState extends State<GlassIconButton> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.white.withValues(alpha: 0.25),
-                        Colors.white.withValues(alpha: 0.15),
+                        const Color(0xFFFFFFFF).withValues(alpha: 0.9),
+                        const Color(0xFFFAFAFA).withValues(alpha: 0.85),
                       ],
                     ),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.95),
                       width: 1.5,
                     ),
                   ),
                   child: Center(
                     child: Icon(
                       widget.icon,
-                      color: widget.color ?? const Color(0xFF1A1A1A),
+                      color: widget.color ?? const Color(0xFF1C1C1E),
                       size: widget.size * 0.5,
                     ),
                   ),

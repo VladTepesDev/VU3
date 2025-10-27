@@ -96,8 +96,11 @@ class MenuProvider extends ChangeNotifier {
 
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
+    final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+    final daysDifference = todayStart.difference(startDate).inDays;
+    final currentDay = (daysDifference % _activeMenu!.durationDays) + 1;
 
-    for (var meal in _activeMenu!.meals.where((m) => m.dayNumber == 1)) {
+    for (var meal in _activeMenu!.meals.where((m) => m.dayNumber == currentDay)) {
       final existingLog = _mealLogs.firstWhere(
         (log) => log.menuMealId == meal.id && 
                  log.scheduledDate.year == todayStart.year &&
@@ -119,12 +122,84 @@ class MenuProvider extends ChangeNotifier {
   }
 
   List<MenuMeal> getTodayMenuMeals() {
-    if (_activeMenu == null) return [];
+    if (_activeMenu == null || _menuStartDate == null) return [];
+    
+    // Calculate current day of the plan (1-7, cycling)
+    final today = DateTime.now();
+    final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final daysDifference = todayDate.difference(startDate).inDays;
+    final currentDay = (daysDifference % _activeMenu!.durationDays) + 1;
     
     return _activeMenu!.meals
-        .where((meal) => meal.dayNumber == 1)
+        .where((meal) => meal.dayNumber == currentDay)
         .toList()
       ..sort((a, b) => a.scheduledTime.compareTo(b.scheduledTime));
+  }
+
+  int? getCurrentPlanDay() {
+    if (_activeMenu == null || _menuStartDate == null) return null;
+    
+    final today = DateTime.now();
+    final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final daysDifference = todayDate.difference(startDate).inDays;
+    return (daysDifference % _activeMenu!.durationDays) + 1;
+  }
+
+  int? getTotalDaysOnPlan() {
+    if (_activeMenu == null || _menuStartDate == null) return null;
+    
+    final today = DateTime.now();
+    final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    return todayDate.difference(startDate).inDays + 1;
+  }
+
+  double getTodayTargetCalories() {
+    final todayMeals = getTodayMenuMeals();
+    return todayMeals.fold(0.0, (sum, meal) => sum + meal.calories);
+  }
+
+  Map<String, double> getTodayTargetMacros() {
+    final todayMeals = getTodayMenuMeals();
+    return {
+      'calories': todayMeals.fold(0.0, (sum, meal) => sum + meal.calories),
+      'protein': todayMeals.fold(0.0, (sum, meal) => sum + meal.protein),
+      'carbs': todayMeals.fold(0.0, (sum, meal) => sum + meal.carbs),
+      'fat': todayMeals.fold(0.0, (sum, meal) => sum + meal.fat),
+    };
+  }
+
+  double getPlanAdherence() {
+    if (_activeMenu == null || _menuStartDate == null) return 0.0;
+    
+    final today = DateTime.now();
+    final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
+    final todayDate = DateTime(today.year, today.month, today.day);
+    final daysSinceStart = todayDate.difference(startDate).inDays + 1;
+    
+    // Count completed meals
+    int completedCount = 0;
+    int totalExpectedMeals = 0;
+    
+    for (int i = 0; i < daysSinceStart; i++) {
+      final checkDate = startDate.add(Duration(days: i));
+      final planDay = (i % _activeMenu!.durationDays) + 1;
+      final dayMeals = _activeMenu!.meals.where((m) => m.dayNumber == planDay).toList();
+      
+      totalExpectedMeals += dayMeals.length;
+      
+      for (var meal in dayMeals) {
+        final log = getMealLog(meal.id, checkDate);
+        if (log?.status == MealLogStatus.completed) {
+          completedCount++;
+        }
+      }
+    }
+    
+    if (totalExpectedMeals == 0) return 0.0;
+    return (completedCount / totalExpectedMeals * 100).clamp(0.0, 100.0);
   }
 
   MealLog? getMealLog(String menuMealId, DateTime date) {

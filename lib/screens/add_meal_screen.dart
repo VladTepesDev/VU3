@@ -381,6 +381,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
       return;
     }
 
+    final mealProvider = context.read<MealProvider>();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     String? imagePath;
     if (_imageFile != null) {
       imagePath = await _saveImage(_imageFile!);
@@ -416,29 +419,29 @@ class _AddMealScreenState extends State<AddMealScreen> {
       notes: _notesController.text.isNotEmpty ? _notesController.text : null,
     );
 
-    await context.read<MealProvider>().addMeal(meal);
+    await mealProvider.addMeal(meal);
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Meal added successfully!'),
-          backgroundColor: AppTheme.textBlack,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    if (!mounted) return;
+    
+    scaffoldMessenger.showSnackBar(
+      const SnackBar(
+        content: Text('Meal added successfully!'),
+        backgroundColor: AppTheme.textBlack,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
 
-      // Clear form
-      _nameController.clear();
-      _caloriesController.clear();
-      _proteinController.clear();
-      _carbsController.clear();
-      _fatController.clear();
-      _weightController.clear();
-      _notesController.clear();
-      setState(() {
-        _imageFile = null;
-        _selectedMealType = 'breakfast';
-      });
-    }
+    // Clear form
+    _nameController.clear();
+    _caloriesController.clear();
+    _proteinController.clear();
+    _carbsController.clear();
+    _fatController.clear();
+    _weightController.clear();
+    _notesController.clear();
+    setState(() {
+      _imageFile = null;
+      _selectedMealType = 'breakfast';
+    });
   }
 }

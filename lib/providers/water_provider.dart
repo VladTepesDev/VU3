@@ -30,7 +30,7 @@ class WaterProvider extends ChangeNotifier {
   }
 
   Future<void> addGlass() async {
-    if (_glassesConsumed < dailyGoal + 5) {
+    if (_glassesConsumed < dailyGoal) {
       _glassesConsumed++;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('water_glasses', _glassesConsumed);

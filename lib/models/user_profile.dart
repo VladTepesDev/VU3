@@ -8,6 +8,7 @@ class UserProfile {
   final List<WeightEntry> weightHistory;
   final double? targetWeight;
   final String activityLevel; // 'sedentary', 'light', 'moderate', 'active', 'very_active'
+  final String goal; // 'lose_weight', 'maintain_weight', 'gain_muscle'
 
   UserProfile({
     required this.id,
@@ -19,6 +20,7 @@ class UserProfile {
     this.weightHistory = const [],
     this.targetWeight,
     this.activityLevel = 'moderate',
+    this.goal = 'maintain_weight',
   });
 
   // Calculate BMR (Basal Metabolic Rate) using Mifflin-St Jeor Equation
@@ -55,6 +57,78 @@ class UserProfile {
     return bmr * multiplier;
   }
 
+  // Calculate recommended daily calories based on goal
+  double get recommendedCalories {
+    switch (goal) {
+      case 'lose_weight':
+        return tdee - 500; // 500 calorie deficit for ~0.5kg/week loss
+      case 'gain_muscle':
+        return tdee + 300; // 300 calorie surplus for muscle gain
+      case 'maintain_weight':
+      default:
+        return tdee;
+    }
+  }
+
+  // Get goal description
+  String get goalDescription {
+    switch (goal) {
+      case 'lose_weight':
+        return 'Lose Weight';
+      case 'gain_muscle':
+        return 'Build Muscle';
+      case 'maintain_weight':
+      default:
+        return 'Maintain Weight';
+    }
+  }
+
+  // Calculate weight progress towards target
+  double? get weightProgressPercent {
+    if (targetWeight == null || weightHistory.isEmpty) return null;
+    
+    final startWeight = weightHistory.first.weight;
+    final currentWeight = weight;
+    final goalWeight = targetWeight!;
+    
+    final totalToLose = startWeight - goalWeight;
+    if (totalToLose == 0) return 100.0;
+    
+    final lostSoFar = startWeight - currentWeight;
+    return (lostSoFar / totalToLose * 100).clamp(0.0, 100.0);
+  }
+
+  // Days until target weight (estimated)
+  int? get estimatedDaysToGoal {
+    if (targetWeight == null || weightHistory.length < 2) return null;
+    
+    final currentWeight = weight;
+    final goalWeight = targetWeight!;
+    final remainingWeight = (currentWeight - goalWeight).abs();
+    
+    if (remainingWeight <= 0) return 0;
+    
+    // Calculate average weight change per day from history
+    final recentEntries = weightHistory.length > 7 
+        ? weightHistory.sublist(weightHistory.length - 7) 
+        : weightHistory;
+    
+    if (recentEntries.length < 2) return null;
+    
+    final firstEntry = recentEntries.first;
+    final lastEntry = recentEntries.last;
+    final daysDiff = lastEntry.date.difference(firstEntry.date).inDays;
+    
+    if (daysDiff == 0) return null;
+    
+    final weightChange = (lastEntry.weight - firstEntry.weight).abs();
+    final avgChangePerDay = weightChange / daysDiff;
+    
+    if (avgChangePerDay == 0) return null;
+    
+    return (remainingWeight / avgChangePerDay).round();
+  }
+
   // Calculate BMI
   double get bmi {
     return weight / ((height / 100) * (height / 100));
@@ -78,6 +152,7 @@ class UserProfile {
       'weightHistory': weightHistory.map((e) => e.toJson()).toList(),
       'targetWeight': targetWeight,
       'activityLevel': activityLevel,
+      'goal': goal,
     };
   }
 
@@ -94,6 +169,7 @@ class UserProfile {
           .toList() ?? [],
       targetWeight: json['targetWeight'],
       activityLevel: json['activityLevel'] ?? 'moderate',
+      goal: json['goal'] ?? 'maintain_weight',
     );
   }
 
@@ -107,6 +183,7 @@ class UserProfile {
     List<WeightEntry>? weightHistory,
     double? targetWeight,
     String? activityLevel,
+    String? goal,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -118,6 +195,7 @@ class UserProfile {
       weightHistory: weightHistory ?? this.weightHistory,
       targetWeight: targetWeight ?? this.targetWeight,
       activityLevel: activityLevel ?? this.activityLevel,
+      goal: goal ?? this.goal,
     );
   }
 }
