@@ -461,94 +461,18 @@ class MenuProvider extends ChangeNotifier {
       if (index >= 0) {
         _mealLogs[index] = log;
       }
+      await _updateDailyStatistics(); // Update statistics when meal is marked as missed
       notifyListeners();
     }
   }
 
   // Update daily statistics after logging meals
+  // This now triggers MealProvider to fully recalculate stats
   Future<void> _updateDailyStatistics({DateTime? forDate}) async {
-    final date = forDate ?? DateTime.now();
-    final dateStart = DateTime(date.year, date.month, date.day);
-
-    // Get completed plan meals for the day
-    final planLogs = _mealLogs.where((log) =>
-        log.scheduledDate.year == dateStart.year &&
-        log.scheduledDate.month == dateStart.month &&
-        log.scheduledDate.day == dateStart.day &&
-        log.status == MealLogStatus.completed).toList();
-
-    // Convert to MealEntry objects
-    final List<MealEntry> meals = [];
-
-    for (var log in planLogs) {
-      // Try to find the actual meal details from active menu
-      String mealName = 'Plan Meal';
-      String mealType = 'plan';
-      
-      if (_activeMenu != null) {
-        try {
-          final menuMeal = _activeMenu!.meals.firstWhere((m) => m.id == log.menuMealId);
-          mealName = menuMeal.name;
-          mealType = menuMeal.mealType;
-        } catch (e) {
-          // Meal not found in current menu, use defaults
-        }
-      }
-
-      meals.add(MealEntry(
-        id: log.id,
-        name: mealName,
-        type: mealType,
-        calories: log.actualCalories ?? 0,
-        protein: log.actualProtein ?? 0,
-        carbs: log.actualCarbs ?? 0,
-        fat: log.actualFat ?? 0,
-        timestamp: log.loggedAt ?? dateStart,
-        source: 'plan',
-        imagePath: log.imagePath,
-      ));
-    }
-
-    // Calculate totals from plan meals only
-    final totalCalories = meals.fold<double>(0, (sum, m) => sum + m.calories);
-    final totalProtein = meals.fold<double>(0, (sum, m) => sum + m.protein);
-    final totalCarbs = meals.fold<double>(0, (sum, m) => sum + m.carbs);
-    final totalFat = meals.fold<double>(0, (sum, m) => sum + m.fat);
-
-    // Calculate plan adherence
-    double? adherence;
-    if (_activeMenu != null && _menuStartDate != null) {
-      final startDate = DateTime(_menuStartDate!.year, _menuStartDate!.month, _menuStartDate!.day);
-      final daysDifference = dateStart.difference(startDate).inDays;
-      final currentDay = (daysDifference % _activeMenu!.durationDays) + 1;
-      
-      final todayMenuMeals = _activeMenu!.meals
-          .where((meal) => meal.dayNumber == currentDay)
-          .toList();
-      
-      if (todayMenuMeals.isNotEmpty) {
-        final completedCount = planLogs.length;
-        adherence = (completedCount / todayMenuMeals.length * 100).clamp(0.0, 100.0);
-      }
-    }
-
-    // Get existing stats to preserve manual meal data
-    final existingStats = await _storageService.getStatsForDate(dateStart);
-    
-    final stats = DailyStats(
-      id: 'stats_${dateStart.toIso8601String()}',
-      date: dateStart,
-      totalCalories: (existingStats?.totalCalories ?? 0) + totalCalories,
-      totalProtein: (existingStats?.totalProtein ?? 0) + totalProtein,
-      totalCarbs: (existingStats?.totalCarbs ?? 0) + totalCarbs,
-      totalFat: (existingStats?.totalFat ?? 0) + totalFat,
-      manualMealCount: existingStats?.manualMealCount ?? 0,
-      planMealCount: planLogs.length,
-      planAdherence: adherence,
-      meals: [...(existingStats?.meals ?? []), ...meals],
-    );
-
-    await _storageService.addOrUpdateDailyStats(stats);
+    // Statistics are now handled by MealProvider's updateDailyStatistics()
+    // This method is kept for backwards compatibility but does nothing
+    // The actual update happens in logMeal() which calls MealProvider.updateDailyStatistics()
+    notifyListeners();
   }
 }
 

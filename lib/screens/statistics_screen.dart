@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/meal_provider.dart';
+import '../providers/menu_provider.dart';
 import '../providers/user_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
@@ -17,7 +18,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   String _selectedPeriod = '7'; // 7, 30, 90 days
 
   @override
+  void initState() {
+    super.initState();
+    // Refresh stats when screen loads to ensure we have latest data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MealProvider>().refreshDailyStats();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Watch both providers to rebuild when either changes
+    context.watch<MealProvider>();
+    context.watch<MenuProvider>();
+    
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -231,12 +245,43 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   Widget _buildSimpleChart(List<DailyStats> stats) {
     if (stats.isEmpty) {
-      return SizedBox(
+      return Container(
         height: 150,
+        decoration: BoxDecoration(
+          color: AppTheme.textGray.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.borderGray.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
         child: Center(
-          child: Text(
-            'No data available',
-            style: TextStyle(color: AppTheme.textGray),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.bar_chart,
+                size: 48,
+                color: AppTheme.textGray.withValues(alpha: 0.3),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No data for this period',
+                style: TextStyle(
+                  color: AppTheme.textGray,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Start logging meals to see your trend',
+                style: TextStyle(
+                  color: AppTheme.textGray.withValues(alpha: 0.7),
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -248,12 +293,43 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
 
     if (maxCalories == 0) {
-      return SizedBox(
+      return Container(
         height: 150,
+        decoration: BoxDecoration(
+          color: AppTheme.textGray.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.borderGray.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
         child: Center(
-          child: Text(
-            'No calories logged yet',
-            style: TextStyle(color: AppTheme.textGray),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.fastfood_outlined,
+                size: 48,
+                color: AppTheme.textGray.withValues(alpha: 0.3),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No calories logged yet',
+                style: TextStyle(
+                  color: AppTheme.textGray,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Your calorie data will appear here',
+                style: TextStyle(
+                  color: AppTheme.textGray.withValues(alpha: 0.7),
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -272,11 +348,23 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Container(
-                    height: height,
-                    decoration: BoxDecoration(
-                      color: AppTheme.textBlack.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(4),
+                  Tooltip(
+                    message: '${stat.totalCalories.toInt()} kcal',
+                    child: Container(
+                      height: height,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppTheme.textBlack.withValues(alpha: 0.5),
+                            AppTheme.textBlack.withValues(alpha: 0.8),
+                          ],
+                        ),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(4),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -384,9 +472,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   Widget _buildRecentMeals(BuildContext context) {
     return Consumer<MealProvider>(
       builder: (context, mealProvider, _) {
-        final days = int.parse(_selectedPeriod);
+        // Always show last 7 days for recent meals
         final now = DateTime.now();
-        final startDate = now.subtract(Duration(days: days));
+        final startDate = now.subtract(const Duration(days: 7));
         final stats = mealProvider.getStatsForRange(startDate, now);
 
         // Collect all meals from all days
@@ -399,7 +487,60 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         allMeals.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
         if (allMeals.isEmpty) {
-          return const SizedBox.shrink();
+          return GlassContainer(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Recent Meals (Last 7 Days)',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: AppTheme.textGray.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppTheme.borderGray.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.restaurant_menu,
+                          size: 48,
+                          color: AppTheme.textGray.withValues(alpha: 0.3),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'No recent meals',
+                          style: TextStyle(
+                            color: AppTheme.textGray,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Start logging meals to see them here',
+                          style: TextStyle(
+                            color: AppTheme.textGray.withValues(alpha: 0.7),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return GlassContainer(
@@ -407,17 +548,46 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Recent Meals',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Recent Meals',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.textBlack.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
                     ),
+                    child: Text(
+                      'Last 7 days',
+                      style: TextStyle(
+                        color: AppTheme.textGray,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
-              ...allMeals.take(10).map((meal) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildMealItem(meal),
-                  )),
+              // Fixed height container for 7 meal cards with scrolling
+              SizedBox(
+                height: 7 * (48 + 12), // 7 items × (item height + spacing)
+                child: ListView.builder(
+                  itemCount: allMeals.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildMealItem(allMeals[index]),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         );

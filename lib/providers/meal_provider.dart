@@ -39,6 +39,11 @@ class MealProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshDailyStats() async {
+    _dailyStats = await _storageService.getDailyStats();
+    notifyListeners();
+  }
+
   DailyMeals? getTodayMeals() {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
@@ -304,6 +309,10 @@ class MealProvider extends ChangeNotifier {
     final date = forDate ?? DateTime.now();
     final dateStart = DateTime(date.year, date.month, date.day);
 
+    // Reload fresh data from storage to ensure we have the latest state
+    _dailyMealsList = await _storageService.getMeals();
+    _mealLogs = await _storageService.getMealLogs();
+
     // Get manual meals for the day
     final manualMeals = _dailyMealsList
         .where((dm) =>
@@ -313,7 +322,7 @@ class MealProvider extends ChangeNotifier {
         .expand((dm) => dm.meals)
         .toList();
 
-    // Get plan meals for the day
+    // Get plan meals for the day (ONLY COMPLETED ones, not missed or pending)
     final planLogs = _mealLogs.where((log) =>
         log.scheduledDate.year == dateStart.year &&
         log.scheduledDate.month == dateStart.month &&
@@ -375,6 +384,7 @@ class MealProvider extends ChangeNotifier {
 
     await _storageService.addOrUpdateDailyStats(stats);
     await _loadDailyStats();
+    notifyListeners(); // Notify UI of statistics update
   }
 
   // Get stats for a specific date

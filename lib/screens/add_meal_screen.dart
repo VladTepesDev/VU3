@@ -442,6 +442,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       );
       
       await mealProvider.refreshMealLogs();
+      await mealProvider.updateDailyStatistics();
       successMessage = '${_menuMeal!.name} logged successfully!';
     } else {
       // This is a manual meal, add it normally

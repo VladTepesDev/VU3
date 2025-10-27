@@ -939,7 +939,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           );
                           if (!context.mounted) return;
                           
-                          await context.read<MealProvider>().refreshMealLogs();
+                          final mealProvider = context.read<MealProvider>();
+                          await mealProvider.refreshMealLogs();
+                          await mealProvider.updateDailyStatistics();
                           if (!context.mounted) return;
                           
                           Navigator.pop(context);
@@ -1000,7 +1002,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           await menuProvider.markMealAsMissed(meal.id);
                           if (!context.mounted) return;
                           
-                          await context.read<MealProvider>().refreshMealLogs();
+                          final mealProvider = context.read<MealProvider>();
+                          await mealProvider.refreshMealLogs();
+                          await mealProvider.updateDailyStatistics();
                           if (!context.mounted) return;
                           
                           Navigator.pop(context);
