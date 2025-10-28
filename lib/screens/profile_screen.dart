@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:io';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
@@ -48,30 +49,53 @@ class ProfileScreen extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
+                          // Profile Image
                           Container(
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppTheme.glassWhite.withValues(alpha: 0.5),
-                                  AppTheme.glassGray.withValues(alpha: 0.5),
-                                ],
-                              ),
                               border: Border.all(
                                 color: AppTheme.borderGray,
                                 width: 2,
                               ),
                             ),
-                            child: Icon(
-                              user.gender == 'male' ? Icons.male : Icons.female,
-                              size: 40,
-                              color: AppTheme.textBlack,
+                            child: ClipOval(
+                              child: user.profileImage != null
+                                  ? Image.file(
+                                      File(user.profileImage!),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            AppTheme.glassWhite.withValues(alpha: 0.5),
+                                            AppTheme.glassGray.withValues(alpha: 0.5),
+                                          ],
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        user.gender == 'male' ? Icons.male : Icons.female,
+                                        size: 40,
+                                        color: AppTheme.textBlack,
+                                      ),
+                                    ),
                             ),
                           ),
                           
                           const SizedBox(height: 16),
+
+                          // Name
+                          if (user.name != null)
+                            Text(
+                              user.name!,
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          
+                          if (user.name != null) const SizedBox(height: 4),
 
                           // Basic Info
                           Text(

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/menu.dart';
 import '../models/meal_log.dart';
-import '../models/daily_stats.dart';
 import '../services/storage_service.dart';
 
 class MenuProvider extends ChangeNotifier {
@@ -477,7 +476,7 @@ class MenuProvider extends ChangeNotifier {
 
   // Update daily statistics after logging meals
   // This now triggers MealProvider to fully recalculate stats
-  Future<void> _updateDailyStatistics({DateTime? forDate}) async {
+  Future<void> _updateDailyStatistics() async {
     // Statistics are now handled by MealProvider's updateDailyStatistics()
     // This method is kept for backwards compatibility but does nothing
     // The actual update happens in logMeal() which calls MealProvider.updateDailyStatistics()

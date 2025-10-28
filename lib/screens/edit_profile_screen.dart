@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
 import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
+import '../services/storage_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -16,11 +19,13 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   
+  late TextEditingController _nameController;
   late TextEditingController _ageController;
   late TextEditingController _heightController;
   late TextEditingController _weightController;
   late TextEditingController _targetWeightController;
   
+  String? _profileImagePath;
   String? _gender;
   String? _activityLevel;
   String? _goal;
@@ -30,6 +35,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     super.initState();
     final user = context.read<UserProvider>().userProfile!;
     
+    _nameController = TextEditingController(text: user.name ?? '');
     _ageController = TextEditingController(text: user.age.toString());
     _heightController = TextEditingController(text: user.height.toString());
     _weightController = TextEditingController(text: user.weight.toString());
@@ -37,13 +43,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       text: user.targetWeight?.toString() ?? '',
     );
     
+    _profileImagePath = user.profileImage;
     _gender = user.gender;
     _activityLevel = user.activityLevel;
     _goal = user.goal;
   }
   
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    
+    if (image != null) {
+      try {
+        // Delete old profile image if it exists
+        final storageService = StorageService();
+        if (_profileImagePath != null) {
+          await storageService.deleteProfileImage(_profileImagePath);
+        }
+        
+        // Save the new image to permanent storage
+        final permanentPath = await storageService.saveProfileImage(image.path);
+        
+        setState(() {
+          _profileImagePath = permanentPath;
+        });
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save image: $e')),
+        );
+      }
+    }
+  }
+  
   @override
   void dispose() {
+    _nameController.dispose();
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
@@ -101,6 +141,92 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        GlassContainer(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Profile',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 16),
+                              
+                              // Profile Image
+                              Center(
+                                child: GestureDetector(
+                                  onTap: _pickImage,
+                                  child: Stack(
+                                    children: [
+                                      Container(
+                                        width: 100,
+                                        height: 100,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: AppTheme.textBlack.withValues(alpha: 0.2),
+                                            width: 3,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: _profileImagePath != null
+                                              ? Image.file(
+                                                  File(_profileImagePath!),
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Container(
+                                                  color: AppTheme.textLightGray.withValues(alpha: 0.1),
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    size: 50,
+                                                    color: AppTheme.textGray.withValues(alpha: 0.5),
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.glassWhite,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: AppTheme.borderGray,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.camera_alt,
+                                            size: 18,
+                                            color: AppTheme.textBlack,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              
+                              const SizedBox(height: 16),
+                              
+                              // Name
+                              TextFormField(
+                                controller: _nameController,
+                                style: const TextStyle(fontSize: 14),
+                                decoration: const InputDecoration(
+                                  labelText: 'Name',
+                                  hintText: 'Enter your name',
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  isDense: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        const SizedBox(height: 12),
+                        
                         GlassContainer(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -390,6 +516,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final currentUser = userProvider.userProfile!;
     
     final updatedProfile = currentUser.copyWith(
+      name: _nameController.text.trim().isEmpty ? null : _nameController.text.trim(),
+      profileImage: _profileImagePath,
       gender: _gender,
       age: int.parse(_ageController.text),
       height: double.parse(_heightController.text),

@@ -19,6 +19,8 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> createProfile({
+    String? name,
+    String? profileImage,
     required String gender,
     required int age,
     required double height,
@@ -29,6 +31,8 @@ class UserProvider extends ChangeNotifier {
   }) async {
     _userProfile = UserProfile(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: name,
+      profileImage: profileImage,
       gender: gender,
       age: age,
       height: height,

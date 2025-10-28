@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../widgets/glass_button.dart';
@@ -17,20 +19,50 @@ class ProfileSetupScreen extends StatefulWidget {
 
 class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _heightController = TextEditingController();
   final _weightController = TextEditingController();
   
+  String? _profileImagePath;
   String _selectedGender = 'male';
   String _activityLevel = 'moderate';
   int _currentStep = 0;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _ageController.dispose();
     _heightController.dispose();
     _weightController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 85,
+    );
+    
+    if (image != null) {
+      try {
+        // Save the image to permanent storage
+        final storageService = StorageService();
+        final permanentPath = await storageService.saveProfileImage(image.path);
+        
+        setState(() {
+          _profileImagePath = permanentPath;
+        });
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save image: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -93,7 +125,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     Expanded(
                       child: GlassButton(
                         onPressed: _handleNext,
-                        child: Text(_currentStep == 2 ? 'Complete' : 'Next'),
+                        child: Text(_currentStep == 3 ? 'Complete' : 'Next'),
                       ),
                     ),
                   ],
@@ -108,12 +140,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Widget _buildProgressIndicator() {
     return Row(
-      children: List.generate(3, (index) {
+      children: List.generate(4, (index) {
         final isActive = index <= _currentStep;
         return Expanded(
           child: Container(
             height: 4,
-            margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
+            margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
             decoration: BoxDecoration(
               color: isActive
                   ? AppTheme.textBlack
@@ -129,14 +161,104 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   Widget _buildCurrentStep() {
     switch (_currentStep) {
       case 0:
-        return _buildGenderStep();
+        return _buildPersonalInfoStep();
       case 1:
-        return _buildMeasurementsStep();
+        return _buildGenderStep();
       case 2:
+        return _buildMeasurementsStep();
+      case 3:
         return _buildActivityStep();
       default:
         return Container();
     }
+  }
+
+  Widget _buildPersonalInfoStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Let\'s start with your profile',
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        const SizedBox(height: 32),
+        
+        // Profile Image
+        Center(
+          child: GestureDetector(
+            onTap: _pickImage,
+            child: Stack(
+              children: [
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppTheme.textBlack.withValues(alpha: 0.2),
+                      width: 3,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: _profileImagePath != null
+                        ? Image.file(
+                            File(_profileImagePath!),
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            color: AppTheme.textLightGray.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.person,
+                              size: 60,
+                              color: AppTheme.textGray.withValues(alpha: 0.5),
+                            ),
+                          ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GlassContainer(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.camera_alt,
+                      size: 20,
+                      color: AppTheme.textBlack,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 32),
+        
+        // Name Field
+        GlassTextField(
+          controller: _nameController,
+          labelText: 'Your Name',
+          hintText: 'Enter your name',
+          prefixIcon: const Icon(Icons.person_outline),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Please enter your name';
+            }
+            return null;
+          },
+        ),
+        
+        const SizedBox(height: 16),
+        
+        Text(
+          'Your name and photo will be displayed in the app',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppTheme.textGray,
+              ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
   }
 
   Widget _buildGenderStep() {
@@ -388,8 +510,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   }
 
   void _handleNext() async {
-    if (_currentStep < 2) {
-      if (_currentStep == 1 && !_formKey.currentState!.validate()) {
+    if (_currentStep < 3) {
+      // Validate current step before moving forward
+      if ((_currentStep == 0 || _currentStep == 2) && !_formKey.currentState!.validate()) {
         return;
       }
       setState(() {
@@ -406,6 +529,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       final navigator = Navigator.of(context);
       
       await userProvider.createProfile(
+        name: _nameController.text.trim().isEmpty ? null : _nameController.text.trim(),
+        profileImage: _profileImagePath,
         gender: _selectedGender,
         age: int.parse(_ageController.text),
         height: double.parse(_heightController.text),

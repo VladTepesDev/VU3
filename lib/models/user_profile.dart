@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 class UserProfile {
   final String id;
+  final String? name;
+  final String? profileImage;
   final String gender; // 'male' or 'female'
   final int age;
   final double height; // in cm
@@ -14,6 +16,8 @@ class UserProfile {
 
   UserProfile({
     required this.id,
+    this.name,
+    this.profileImage,
     required this.gender,
     required this.age,
     required this.height,
@@ -212,6 +216,8 @@ class UserProfile {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'name': name,
+      'profileImage': profileImage,
       'gender': gender,
       'age': age,
       'height': height,
@@ -227,6 +233,8 @@ class UserProfile {
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
       id: json['id'],
+      name: json['name'],
+      profileImage: json['profileImage'],
       gender: json['gender'],
       age: json['age'],
       height: json['height'],
@@ -243,6 +251,8 @@ class UserProfile {
 
   UserProfile copyWith({
     String? id,
+    String? name,
+    String? profileImage,
     String? gender,
     int? age,
     double? height,
@@ -255,6 +265,8 @@ class UserProfile {
   }) {
     return UserProfile(
       id: id ?? this.id,
+      name: name ?? this.name,
+      profileImage: profileImage ?? this.profileImage,
       gender: gender ?? this.gender,
       age: age ?? this.age,
       height: height ?? this.height,

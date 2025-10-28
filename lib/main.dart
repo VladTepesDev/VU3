@@ -130,11 +130,17 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
       if (!mounted) return;
       
       // Reload water data (it has built-in day check)
-      await context.read<WaterProvider>().checkAndResetForNewDay();
+      final waterProvider = context.read<WaterProvider>();
+      final mealProvider = context.read<MealProvider>();
+      final menuProvider = context.read<MenuProvider>();
       
-      // Refresh all data
-      await context.read<MealProvider>().checkAndResetForNewDay();
-      await context.read<MenuProvider>().checkAndResetForNewDay();
+      await waterProvider.checkAndResetForNewDay();
+      if (!mounted) return;
+      
+      await mealProvider.checkAndResetForNewDay();
+      if (!mounted) return;
+      
+      await menuProvider.checkAndResetForNewDay();
     }
   }
 

@@ -60,9 +60,17 @@ class _HomeScreenState extends State<HomeScreen> {
       // Day has changed, refresh all providers
       if (!mounted) return;
       
-      await context.read<WaterProvider>().checkAndResetForNewDay();
-      await context.read<MealProvider>().checkAndResetForNewDay();
-      await context.read<MenuProvider>().checkAndResetForNewDay();
+      final waterProvider = context.read<WaterProvider>();
+      final mealProvider = context.read<MealProvider>();
+      final menuProvider = context.read<MenuProvider>();
+      
+      await waterProvider.checkAndResetForNewDay();
+      if (!mounted) return;
+      
+      await mealProvider.checkAndResetForNewDay();
+      if (!mounted) return;
+      
+      await menuProvider.checkAndResetForNewDay();
     }
   }
 
@@ -79,19 +87,88 @@ class _HomeScreenState extends State<HomeScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Hello there!',
-                      style: Theme.of(context).textTheme.displaySmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
+                child: Consumer<UserProvider>(
+                  builder: (context, userProvider, _) {
+                    final user = userProvider.userProfile;
+                    final userName = user?.name ?? 'User';
+                    
+                    return Column(
+                      children: [
+                        // Profile Image and Name
+                        Row(
+                          children: [
+                            // Profile Image
+                            Container(
+                              width: 60,
+                              height: 60,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppTheme.textBlack.withValues(alpha: 0.1),
+                                  width: 2,
+                                ),
+                              ),
+                              child: ClipOval(
+                                child: user?.profileImage != null
+                                    ? Image.file(
+                                        File(user!.profileImage!),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppTheme.glassWhite.withValues(alpha: 0.5),
+                                              AppTheme.glassGray.withValues(alpha: 0.5),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          user?.gender == 'male' ? Icons.male : Icons.female,
+                                          size: 30,
+                                          color: AppTheme.textBlack,
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Name and greeting
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userName,
+                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Welcome back!',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          color: AppTheme.textGray,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Date
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.textGray,
+                                ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

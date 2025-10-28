@@ -82,7 +82,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   _buildNavItem(
                     icon: Icons.menu_book_outlined,
                     activeIcon: Icons.menu_book,
-                    label: 'Menus',
+                    label: 'Plans',
                     index: 2,
                   ),
                   _buildNavItem(

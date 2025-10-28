@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import '../models/user_profile.dart';
 import '../models/meal.dart';
 import '../models/menu.dart';
@@ -17,6 +20,46 @@ class StorageService {
   static const String _activeMenuIdKey = 'active_menu_id';
   static const String _menuStartDateKey = 'menu_start_date';
   static const String _dailyStatsKey = 'daily_stats';
+
+  // Profile Image Management
+  Future<String> saveProfileImage(String imagePath) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final profileImagesDir = Directory('${appDir.path}/profile_images');
+      
+      // Create directory if it doesn't exist
+      if (!await profileImagesDir.exists()) {
+        await profileImagesDir.create(recursive: true);
+      }
+
+      // Generate unique filename
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = path.extension(imagePath);
+      final newFileName = 'profile_$timestamp$extension';
+      final newPath = '${profileImagesDir.path}/$newFileName';
+
+      // Copy the image to permanent storage
+      final sourceFile = File(imagePath);
+      await sourceFile.copy(newPath);
+
+      return newPath;
+    } catch (e) {
+      throw Exception('Failed to save profile image: $e');
+    }
+  }
+
+  Future<void> deleteProfileImage(String? imagePath) async {
+    if (imagePath == null || imagePath.isEmpty) return;
+    
+    try {
+      final file = File(imagePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      // Ignore deletion errors - file might not exist
+    }
+  }
 
   // User Profile
   Future<void> saveUserProfile(UserProfile profile) async {
