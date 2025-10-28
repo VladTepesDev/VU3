@@ -669,22 +669,15 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getMealTypeColor(meal.mealType).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              Expanded(
                 child: Text(
-                  meal.mealType.toUpperCase(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontSize: 10,
+                  meal.name,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: _getMealTypeColor(meal.mealType),
                   ),
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               Text(
                 '${meal.calories.toStringAsFixed(0)} kcal',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -693,13 +686,6 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            meal.name,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
           ),
           const SizedBox(height: 8),
           Row(
@@ -769,7 +755,7 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
   Widget _buildMacroChip(BuildContext context, String label, double value) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         decoration: BoxDecoration(
           color: AppTheme.glassGray,
           borderRadius: BorderRadius.circular(12),
@@ -782,17 +768,17 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
             Text(
               label.toUpperCase(),
               style: const TextStyle(
-                fontSize: 10,
+                fontSize: 9,
                 fontWeight: FontWeight.w600,
                 color: AppTheme.textGray,
-                letterSpacing: 0.5,
+                letterSpacing: 0.3,
               ),
             ),
             const SizedBox(height: 4),
             Text(
               label == 'kcal' ? value.toInt().toString() : '${value.toInt()}g',
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.textBlack,
               ),
