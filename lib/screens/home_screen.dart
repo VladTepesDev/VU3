@@ -79,7 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: AppTheme.backgroundGradient,
+        image: DecorationImage(
+          image: AssetImage('assets/images/app_background.png'),
+          fit: BoxFit.cover,
+          opacity: 0.2,
+        ),
       ),
       child: SafeArea(
         child: CustomScrollView(

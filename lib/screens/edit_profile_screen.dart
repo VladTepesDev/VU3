@@ -97,7 +97,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
-          gradient: AppTheme.backgroundGradient,
+          image: DecorationImage(
+            image: AssetImage('assets/images/app_background.png'),
+            fit: BoxFit.cover,
+            opacity: 0.2,
+          ),
         ),
         child: SafeArea(
           bottom: false,
