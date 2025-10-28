@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/glass_container.dart';
 import '../models/daily_stats.dart';
+import 'meal_entry_details_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -611,54 +612,75 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   }
 
   Widget _buildMealItem(MealEntry meal) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: meal.source == 'manual' ? AppTheme.textBlack : AppTheme.textGray,
-            shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MealEntryDetailsScreen(mealEntry: meal),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppTheme.glassWhite.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.borderGray.withValues(alpha: 0.3),
+            width: 1,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                meal.name,
-                style: const TextStyle(
-                  color: AppTheme.textBlack,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
+        child: Row(
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: meal.source == 'manual' ? AppTheme.textBlack : AppTheme.textGray,
+                shape: BoxShape.circle,
               ),
-              Text(
-                '${meal.calories.toInt()} kcal • ${_formatDate(meal.timestamp)}',
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    meal.name,
+                    style: const TextStyle(
+                      color: AppTheme.textBlack,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    '${meal.calories.toInt()} kcal • ${_formatDate(meal.timestamp)}',
+                    style: const TextStyle(
+                      color: AppTheme.textGray,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppTheme.textLightGray.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                meal.type,
                 style: const TextStyle(
                   color: AppTheme.textGray,
-                  fontSize: 12,
+                  fontSize: 11,
                 ),
               ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: AppTheme.textLightGray.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            meal.type,
-            style: const TextStyle(
-              color: AppTheme.textGray,
-              fontSize: 11,
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

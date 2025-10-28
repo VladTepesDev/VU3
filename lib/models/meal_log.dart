@@ -1,6 +1,7 @@
 class MealLog {
   final String id;
   final String menuMealId;
+  final String mealName; // Name of the meal from the menu
   final DateTime scheduledDate;
   final DateTime? loggedAt;
   final String? imagePath;
@@ -14,6 +15,7 @@ class MealLog {
   MealLog({
     required this.id,
     required this.menuMealId,
+    required this.mealName,
     required this.scheduledDate,
     this.loggedAt,
     this.imagePath,
@@ -33,6 +35,7 @@ class MealLog {
     return {
       'id': id,
       'menuMealId': menuMealId,
+      'mealName': mealName,
       'scheduledDate': scheduledDate.toIso8601String(),
       'loggedAt': loggedAt?.toIso8601String(),
       'imagePath': imagePath,
@@ -49,6 +52,7 @@ class MealLog {
     return MealLog(
       id: json['id'],
       menuMealId: json['menuMealId'],
+      mealName: json['mealName'] ?? 'Plan Meal', // Default for old data
       scheduledDate: DateTime.parse(json['scheduledDate']),
       loggedAt: json['loggedAt'] != null ? DateTime.parse(json['loggedAt']) : null,
       imagePath: json['imagePath'],
@@ -70,6 +74,7 @@ class MealLog {
   MealLog copyWith({
     String? id,
     String? menuMealId,
+    String? mealName,
     DateTime? scheduledDate,
     DateTime? loggedAt,
     String? imagePath,
@@ -83,6 +88,7 @@ class MealLog {
     return MealLog(
       id: id ?? this.id,
       menuMealId: menuMealId ?? this.menuMealId,
+      mealName: mealName ?? this.mealName,
       scheduledDate: scheduledDate ?? this.scheduledDate,
       loggedAt: loggedAt ?? this.loggedAt,
       imagePath: imagePath ?? this.imagePath,

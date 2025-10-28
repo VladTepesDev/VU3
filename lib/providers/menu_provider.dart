@@ -18,6 +18,7 @@ class MenuProvider extends ChangeNotifier {
     await _loadMenus();
     await _loadMealLogs();
     await _loadActiveMenu();
+    await _migrateMealLogNames(); // Migrate old meal logs to have names
   }
 
   List<Menu> get menus => _menus;
@@ -175,6 +176,37 @@ class MenuProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> _migrateMealLogNames() async {
+    if (_activeMenu == null) return;
+    
+    bool needsUpdate = false;
+    final updatedLogs = <MealLog>[];
+    
+    for (var log in _mealLogs) {
+      // Check if the log has default name "Plan Meal"
+      if (log.mealName == 'Plan Meal') {
+        // Try to find the actual meal name from the menu
+        try {
+          final meal = _activeMenu!.meals.firstWhere((m) => m.id == log.menuMealId);
+          final updatedLog = log.copyWith(mealName: meal.name);
+          updatedLogs.add(updatedLog);
+          needsUpdate = true;
+        } catch (e) {
+          // Meal not found in menu, keep original
+          updatedLogs.add(log);
+        }
+      } else {
+        updatedLogs.add(log);
+      }
+    }
+    
+    if (needsUpdate) {
+      _mealLogs = updatedLogs;
+      await _storageService.saveMealLogs(_mealLogs);
+      notifyListeners();
+    }
+  }
+
   Future<void> _generateMealLogsForActiveMenu() async {
     if (_activeMenu == null || _menuStartDate == null) return;
 
@@ -193,6 +225,7 @@ class MenuProvider extends ChangeNotifier {
         orElse: () => MealLog(
           id: '${meal.id}_${todayStart.toIso8601String()}',
           menuMealId: meal.id,
+          mealName: meal.name,
           scheduledDate: todayStart,
           status: MealLogStatus.upcoming,
         ),
@@ -308,18 +341,38 @@ class MenuProvider extends ChangeNotifier {
     double? carbs,
     double? fat,
     String? notes,
+    String? customMealName, // Allow user to provide custom name
   }) async {
     final today = DateTime.now();
     final todayStart = DateTime(today.year, today.month, today.day);
 
     final existingLog = getMealLog(menuMealId, todayStart);
     
+    // Use custom name if provided, otherwise get from menu
+    String mealName;
+    if (customMealName != null && customMealName.isNotEmpty) {
+      mealName = customMealName;
+    } else {
+      // Get the meal to retrieve its name
+      MenuMeal? foundMeal;
+      if (_activeMenu != null) {
+        try {
+          foundMeal = _activeMenu!.meals.firstWhere((m) => m.id == menuMealId);
+        } catch (e) {
+          // Meal not found, will use default
+        }
+      }
+      mealName = foundMeal?.name ?? 'Plan Meal';
+    }
+    
     final log = (existingLog ?? MealLog(
       id: '${menuMealId}_${todayStart.toIso8601String()}',
       menuMealId: menuMealId,
+      mealName: mealName,
       scheduledDate: todayStart,
       status: MealLogStatus.upcoming,
     )).copyWith(
+      mealName: mealName, // Update the name in case it was changed
       status: MealLogStatus.completed,
       loggedAt: DateTime.now(),
       imagePath: imagePath,

@@ -88,13 +88,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   style: Theme.of(context).textTheme.displayMedium,
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'We need some information to personalize your experience',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                
-                const SizedBox(height: 32),
-                
                 // Progress Indicator
                 _buildProgressIndicator(),
                 
@@ -267,7 +260,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         Text(
           'Your name and photo will be displayed in the app',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.textGray,
+                color: AppTheme.textBlack,
               ),
           textAlign: TextAlign.center,
         ),
@@ -424,11 +417,6 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
-        Text(
-          'This helps us calculate your daily calorie needs',
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 24),
         
         _buildActivityOption(
           'sedentary',

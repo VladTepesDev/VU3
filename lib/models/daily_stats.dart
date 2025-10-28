@@ -64,9 +64,11 @@ class MealEntry {
   final double protein;
   final double carbs;
   final double fat;
+  final double? weight;
   final DateTime timestamp;
   final String source; // 'manual' or 'plan'
   final String? imagePath;
+  final String? notes;
 
   MealEntry({
     required this.id,
@@ -76,9 +78,11 @@ class MealEntry {
     required this.protein,
     required this.carbs,
     required this.fat,
+    this.weight,
     required this.timestamp,
     required this.source,
     this.imagePath,
+    this.notes,
   });
 
   Map<String, dynamic> toJson() {
@@ -90,9 +94,11 @@ class MealEntry {
       'protein': protein,
       'carbs': carbs,
       'fat': fat,
+      'weight': weight,
       'timestamp': timestamp.toIso8601String(),
       'source': source,
       'imagePath': imagePath,
+      'notes': notes,
     };
   }
 
@@ -105,9 +111,11 @@ class MealEntry {
       protein: json['protein'],
       carbs: json['carbs'],
       fat: json['fat'],
+      weight: json['weight'],
       timestamp: DateTime.parse(json['timestamp']),
       source: json['source'],
       imagePath: json['imagePath'],
+      notes: json['notes'],
     );
   }
 }

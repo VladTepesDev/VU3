@@ -50,10 +50,49 @@ class MealProvider extends ChangeNotifier {
     _mealLogs = await _storageService.getMealLogs();
     _dailyStats = await _storageService.getDailyStats();
     
+    // Clean up old data (older than 30 days)
+    await _cleanupOldData();
+    
     // Update statistics for the new day
     await updateDailyStatistics();
     
     notifyListeners();
+  }
+
+  Future<void> _cleanupOldData() async {
+    final now = DateTime.now();
+    final thirtyDaysAgo = now.subtract(const Duration(days: 30));
+    final cutoffDate = DateTime(thirtyDaysAgo.year, thirtyDaysAgo.month, thirtyDaysAgo.day);
+
+    // Remove old daily meals
+    final recentMeals = _dailyMealsList.where((dm) => 
+      dm.date.isAfter(cutoffDate) || dm.date.isAtSameMomentAs(cutoffDate)
+    ).toList();
+    
+    if (recentMeals.length != _dailyMealsList.length) {
+      _dailyMealsList = recentMeals;
+      await _storageService.saveMeals(_dailyMealsList);
+    }
+
+    // Remove old meal logs
+    final recentLogs = _mealLogs.where((log) => 
+      log.scheduledDate.isAfter(cutoffDate) || log.scheduledDate.isAtSameMomentAs(cutoffDate)
+    ).toList();
+    
+    if (recentLogs.length != _mealLogs.length) {
+      _mealLogs = recentLogs;
+      await _storageService.saveMealLogs(_mealLogs);
+    }
+
+    // Remove old daily stats
+    final recentStats = _dailyStats.where((stats) => 
+      stats.date.isAfter(cutoffDate) || stats.date.isAtSameMomentAs(cutoffDate)
+    ).toList();
+    
+    if (recentStats.length != _dailyStats.length) {
+      _dailyStats = recentStats;
+      await _storageService.saveDailyStats(_dailyStats);
+    }
   }
 
   DailyMeals? getTodayMeals() {
@@ -70,6 +109,17 @@ class MealProvider extends ChangeNotifier {
     }
   }
 
+  Meal? getMealById(String mealId) {
+    for (var dailyMeals in _dailyMealsList) {
+      try {
+        return dailyMeals.meals.firstWhere((meal) => meal.id == mealId);
+      } catch (e) {
+        continue;
+      }
+    }
+    return null;
+  }
+
   Future<void> addMeal(Meal meal) async {
     await _storageService.addMeal(meal);
     await _loadMeals();
@@ -77,27 +127,30 @@ class MealProvider extends ChangeNotifier {
   }
 
   Future<void> updateMeal(String mealId, Meal updatedMeal) async {
-    final today = DateTime.now();
-    final todayStart = DateTime(today.year, today.month, today.day);
+    // Find which day contains this meal
+    int dayIndex = -1;
+    for (int i = 0; i < _dailyMealsList.length; i++) {
+      if (_dailyMealsList[i].meals.any((m) => m.id == mealId)) {
+        dayIndex = i;
+        break;
+      }
+    }
 
-    final todayIndex = _dailyMealsList.indexWhere((dm) =>
-        dm.date.year == todayStart.year &&
-        dm.date.month == todayStart.month &&
-        dm.date.day == todayStart.day);
-
-    if (todayIndex >= 0) {
-      final updatedMeals = _dailyMealsList[todayIndex].meals.map((meal) {
+    if (dayIndex >= 0) {
+      final updatedMeals = _dailyMealsList[dayIndex].meals.map((meal) {
         return meal.id == mealId ? updatedMeal : meal;
       }).toList();
 
-      _dailyMealsList[todayIndex] = DailyMeals(
-        date: todayStart,
+      _dailyMealsList[dayIndex] = DailyMeals(
+        date: _dailyMealsList[dayIndex].date,
         meals: updatedMeals,
       );
 
       await _storageService.saveMeals(_dailyMealsList);
       notifyListeners();
-      await updateDailyStatistics();
+      
+      // Update statistics for the day this meal belongs to
+      await updateDailyStatistics(forDate: _dailyMealsList[dayIndex].date);
     }
   }
 
@@ -353,16 +406,18 @@ class MealProvider extends ChangeNotifier {
         protein: meal.protein,
         carbs: meal.carbs,
         fat: meal.fat,
+        weight: meal.weight > 0 ? meal.weight : null,
         timestamp: meal.createdAt,
         source: 'manual',
         imagePath: meal.imagePath,
+        notes: meal.notes,
       ));
     }
 
     for (var log in planLogs) {
       meals.add(MealEntry(
         id: log.id,
-        name: 'Plan Meal', // We'll need to get actual name from menu
+        name: log.mealName,
         type: 'plan',
         calories: log.actualCalories ?? 0,
         protein: log.actualProtein ?? 0,
@@ -371,6 +426,7 @@ class MealProvider extends ChangeNotifier {
         timestamp: log.loggedAt ?? dateStart,
         source: 'plan',
         imagePath: log.imagePath,
+        notes: log.notes,
       ));
     }
 

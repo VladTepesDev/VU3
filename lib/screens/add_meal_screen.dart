@@ -10,6 +10,7 @@ import '../widgets/glass_text_field.dart';
 import '../widgets/custom_toast.dart';
 import '../models/meal.dart';
 import '../models/menu.dart';
+import '../models/meal_log.dart';
 import '../providers/meal_provider.dart';
 import '../providers/menu_provider.dart';
 
@@ -34,16 +35,38 @@ class _AddMealScreenState extends State<AddMealScreen> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   MenuMeal? _menuMeal; // Store the menu meal if passed
+  MealLog? _mealLog; // Store the meal log if editing
   bool _isInitialized = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     
-    // Get the menu meal argument if passed
+    // Get the arguments if passed
     if (!_isInitialized) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is MenuMeal) {
+      
+      // Check if editing an existing logged meal
+      if (args is Map<String, dynamic> && args.containsKey('mealLog')) {
+        _mealLog = args['mealLog'] as MealLog;
+        _menuMeal = args['menuMeal'] as MenuMeal?;
+        
+        // Populate with logged values
+        _nameController.text = _menuMeal?.name ?? 'Plan Meal';
+        _caloriesController.text = (_mealLog!.actualCalories ?? _menuMeal?.calories ?? 0).toStringAsFixed(0);
+        _proteinController.text = (_mealLog!.actualProtein ?? _menuMeal?.protein ?? 0).toStringAsFixed(0);
+        _carbsController.text = (_mealLog!.actualCarbs ?? _menuMeal?.carbs ?? 0).toStringAsFixed(0);
+        _fatController.text = (_mealLog!.actualFat ?? _menuMeal?.fat ?? 0).toStringAsFixed(0);
+        if (_mealLog!.notes != null) {
+          _notesController.text = _mealLog!.notes!;
+        }
+        if (_mealLog!.imagePath != null) {
+          _imageFile = File(_mealLog!.imagePath!);
+        }
+        _selectedMealType = _menuMeal?.mealType ?? 'breakfast';
+      }
+      // Check if logging a new menu meal
+      else if (args is MenuMeal) {
         _menuMeal = args;
         _nameController.text = _menuMeal!.name;
         _caloriesController.text = _menuMeal!.calories.toStringAsFixed(0);
@@ -435,7 +458,12 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
     String? imagePath;
     if (_imageFile != null) {
-      imagePath = await _saveImage(_imageFile!);
+      // If it's a new image (not from existing path), save it
+      if (_mealLog == null || _imageFile!.path != _mealLog!.imagePath) {
+        imagePath = await _saveImage(_imageFile!);
+      } else {
+        imagePath = _mealLog!.imagePath;
+      }
     }
 
     final calories = _caloriesController.text.isNotEmpty 
@@ -463,11 +491,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
         fat: fat,
         imagePath: imagePath,
         notes: _notesController.text.isNotEmpty ? _notesController.text : null,
+        customMealName: _nameController.text.isNotEmpty ? _nameController.text : null, // Pass custom name
       );
       
       await mealProvider.refreshMealLogs();
       await mealProvider.updateDailyStatistics();
-      successMessage = '${_menuMeal!.name} logged successfully!';
+      successMessage = _mealLog != null 
+          ? '${_nameController.text} updated successfully!'
+          : '${_nameController.text} logged successfully!';
     } else {
       // This is a manual meal, add it normally
       final weight = _weightController.text.isNotEmpty 
@@ -513,6 +544,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
         _imageFile = null;
         _selectedMealType = 'breakfast';
         _menuMeal = null;
+        _mealLog = null;
         _isInitialized = false;
       });
     }

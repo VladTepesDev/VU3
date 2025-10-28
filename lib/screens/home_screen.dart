@@ -13,7 +13,9 @@ import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
 import '../providers/menu_provider.dart';
 import '../models/meal_log.dart';
-import 'edit_meal_screen.dart';
+import '../models/daily_stats.dart';
+import 'meal_details_screen.dart';
+import 'meal_entry_details_screen.dart';
 import 'main_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -637,9 +639,11 @@ class _HomeScreenState extends State<HomeScreen> {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: GestureDetector(
-                  onTap: isInteractive
-                      ? () => _showLogMealDialog(context, meal, menuProvider)
-                      : null,
+                  onTap: status == MealLogStatus.completed
+                      ? () => _showCompletedMealOptions(context, meal, mealLog!, menuProvider)
+                      : isInteractive
+                          ? () => _showLogMealDialog(context, meal, menuProvider)
+                          : null,
                   child: Opacity(
                     opacity: isInteractive ? 1.0 : 0.5,
                     child: GlassContainer(
@@ -919,6 +923,183 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showCompletedMealOptions(BuildContext context, meal, MealLog mealLog, MenuProvider menuProvider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.5,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.glassWhite.withValues(alpha: 0.9),
+              AppTheme.glassGray.withValues(alpha: 0.8),
+            ],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          border: Border.all(
+            color: AppTheme.borderWhite.withValues(alpha: 0.8),
+            width: 1.5,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+            child: Padding(
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: 24 + MediaQuery.of(context).padding.bottom,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Drag indicator
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        color: AppTheme.textLightGray,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  
+                  // Meal name
+                  Text(
+                    meal.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textBlack,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  Text(
+                    'Meal logged',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.textGray,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  // See Details button
+                  GlassButton(
+                    isPrimary: true,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      
+                      // Check if meal was logged with customization
+                      final hasCustomization = mealLog.actualCalories != null ||
+                          mealLog.actualProtein != null ||
+                          mealLog.actualCarbs != null ||
+                          mealLog.actualFat != null ||
+                          mealLog.notes != null ||
+                          mealLog.imagePath != null;
+                      
+                      if (hasCustomization) {
+                        // Show editable details screen
+                        Navigator.pushNamed(
+                          context,
+                          '/add-meal',
+                          arguments: {
+                            'mealLog': mealLog,
+                            'menuMeal': meal,
+                          },
+                        );
+                      } else {
+                        // Show read-only details screen
+                        final mealEntry = MealEntry(
+                          id: mealLog.id,
+                          name: meal.name,
+                          type: meal.mealType,
+                          calories: mealLog.actualCalories ?? meal.calories,
+                          protein: mealLog.actualProtein ?? meal.protein,
+                          carbs: mealLog.actualCarbs ?? meal.carbs,
+                          fat: mealLog.actualFat ?? meal.fat,
+                          timestamp: mealLog.loggedAt ?? DateTime.now(),
+                          source: 'plan',
+                          imagePath: mealLog.imagePath,
+                          notes: mealLog.notes,
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MealEntryDetailsScreen(mealEntry: mealEntry),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.visibility, color: AppTheme.textBlack, size: 24),
+                        SizedBox(width: 12),
+                        Text(
+                          'See Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  // Mark as Missed button
+                  GlassButton(
+                    onPressed: () async {
+                      await menuProvider.markMealAsMissed(meal.id);
+                      if (!context.mounted) return;
+                      
+                      final mealProvider = context.read<MealProvider>();
+                      await mealProvider.refreshMealLogs();
+                      await mealProvider.updateDailyStatistics();
+                      if (!context.mounted) return;
+                      
+                      Navigator.pop(context);
+                      CustomToast.info(context, 'Meal marked as missed');
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.cancel_outlined, color: AppTheme.textGray, size: 24),
+                        SizedBox(width: 12),
+                        Text(
+                          'Mark as Missed',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textGray,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -1575,7 +1756,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => EditMealScreen(meal: meal),
+                        builder: (context) => MealDetailsScreen(meal: meal),
                       ),
                     );
                   },

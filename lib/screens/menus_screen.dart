@@ -789,21 +789,6 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
     );
   }
 
-  Color _getMealTypeColor(String mealType) {
-    switch (mealType.toLowerCase()) {
-      case 'breakfast':
-        return Colors.orange;
-      case 'lunch':
-        return Colors.green;
-      case 'dinner':
-        return Colors.blue;
-      case 'snack':
-        return Colors.purple;
-      default:
-        return AppTheme.textGray;
-    }
-  }
-
   Widget _buildStatItem(BuildContext context, String value, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
