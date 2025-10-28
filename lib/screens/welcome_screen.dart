@@ -32,15 +32,6 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: isSmallScreen ? 20 : 40),
                   
-                  Image.asset(
-                    'assets/images/app_logo.png',
-                    width: isSmallScreen ? 200 : 250,
-                    height: isSmallScreen ? 200 : 250,
-                    fit: BoxFit.contain,
-                  ),
-                  
-                  SizedBox(height: isSmallScreen ? 32 : 48),
-                  
                   _buildFeature(
                     context,
                     Icons.track_changes,

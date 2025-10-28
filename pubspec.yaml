@@ -57,6 +57,7 @@ dependencies:
   
   # WebView for terms and policy
   flutter_inappwebview: ^6.0.0
+  flutter_native_splash: ^2.4.7
 
 dev_dependencies:
   flutter_test:
@@ -127,3 +128,23 @@ flutter_launcher_icons:
   # Optional: Adaptive icon for Android (Android 8.0+)
   adaptive_icon_foreground: "assets/images/app_icon.png"
   adaptive_icon_background: "#FFFFFF"
+
+# Flutter Native Splash configuration
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/welcome_screen_bg.png
+  
+  # Android specific settings
+  android: true
+  android_gravity: fill
+  
+  # iOS specific settings
+  ios: true
+  ios_content_mode: scaleAspectFill
+  
+  # Web specific settings (optional)
+  web: false
+  
+  # Branding image (optional - shown at the bottom)
+  # branding: assets/images/app_logo.png
+  # branding_mode: bottom
