@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../models/user_profile.dart';
 import '../services/storage_service.dart';
 
@@ -15,6 +16,34 @@ class UserProvider extends ChangeNotifier {
 
   Future<void> _loadUserProfile() async {
     _userProfile = await _storageService.getUserProfile();
+    
+    // Check if profile image path is valid, if not clear it
+    if (_userProfile?.profileImage != null) {
+      final imageFile = File(_userProfile!.profileImage!);
+      if (!await imageFile.exists()) {
+        debugPrint('Profile image not found at: ${_userProfile!.profileImage}');
+        debugPrint('Clearing invalid profile image path');
+        // Clear the invalid image path by creating new profile without it
+        _userProfile = UserProfile(
+          id: _userProfile!.id,
+          name: _userProfile!.name,
+          profileImage: null, // Clear the invalid path
+          gender: _userProfile!.gender,
+          age: _userProfile!.age,
+          height: _userProfile!.height,
+          weight: _userProfile!.weight,
+          createdAt: _userProfile!.createdAt,
+          weightHistory: _userProfile!.weightHistory,
+          targetWeight: _userProfile!.targetWeight,
+          activityLevel: _userProfile!.activityLevel,
+          goal: _userProfile!.goal,
+        );
+        await _storageService.saveUserProfile(_userProfile!);
+      } else {
+        debugPrint('Profile image found at: ${_userProfile!.profileImage}');
+      }
+    }
+    
     notifyListeners();
   }
 

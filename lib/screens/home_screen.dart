@@ -109,10 +109,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               child: ClipOval(
-                                child: user?.profileImage != null
+                                child: user?.profileImage != null && File(user!.profileImage!).existsSync()
                                     ? Image.file(
-                                        File(user!.profileImage!),
+                                        File(user.profileImage!),
                                         fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  AppTheme.glassWhite.withValues(alpha: 0.5),
+                                                  AppTheme.glassGray.withValues(alpha: 0.5),
+                                                ],
+                                              ),
+                                            ),
+                                            child: Icon(
+                                              user.gender == 'male' ? Icons.male : Icons.female,
+                                              size: 30,
+                                              color: AppTheme.textBlack,
+                                            ),
+                                          );
+                                        },
                                       )
                                     : Container(
                                         decoration: BoxDecoration(
@@ -1284,6 +1301,30 @@ class _HomeScreenState extends State<HomeScreen> {
       'Don\'t skip meals - eat regularly to maintain energy.',
       'Add colorful vegetables to increase nutrient intake.',
       'Get enough sleep - it affects your eating habits.',
+      'Chew your food slowly to improve digestion and feel fuller.',
+      'Practice portion control - use smaller plates.',
+      'Include healthy fats like avocado and nuts in your diet.',
+      'Reduce sugar intake for better energy levels.',
+      'Eat mindfully - avoid distractions during meals.',
+      'Add herbs and spices instead of salt for flavor.',
+      'Include fermented foods for gut health.',
+      'Eat the rainbow - different colored foods offer different nutrients.',
+      'Pre-portion snacks to avoid overeating.',
+      'Cook at home more often to control ingredients.',
+      'Stay active - combine good nutrition with exercise.',
+      'Listen to your body\'s hunger and fullness cues.',
+      'Limit processed foods and choose whole foods.',
+      'Start your meal with a salad to increase fiber intake.',
+      'Keep healthy snacks visible and unhealthy ones out of sight.',
+      'Drink green tea for antioxidants and metabolism boost.',
+      'Include omega-3 rich foods like fish and flaxseeds.',
+      'Don\'t grocery shop when hungry to avoid impulse buys.',
+      'Meal prep on weekends to save time during the week.',
+      'Add beans and legumes for protein and fiber.',
+      'Stay consistent - small daily changes lead to big results.',
+      'Track your water intake - aim for 8 glasses daily.',
+      'Include probiotic foods like yogurt for digestive health.',
+      'Reduce caffeine in the afternoon for better sleep.',
     ];
     
     final today = DateTime.now();

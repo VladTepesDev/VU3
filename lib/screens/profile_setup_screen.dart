@@ -200,10 +200,20 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     ),
                   ),
                   child: ClipOval(
-                    child: _profileImagePath != null
+                    child: _profileImagePath != null && File(_profileImagePath!).existsSync()
                         ? Image.file(
                             File(_profileImagePath!),
                             fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: AppTheme.textLightGray.withValues(alpha: 0.1),
+                                child: Icon(
+                                  Icons.person,
+                                  size: 60,
+                                  color: AppTheme.textGray.withValues(alpha: 0.5),
+                                ),
+                              );
+                            },
                           )
                         : Container(
                             color: AppTheme.textLightGray.withValues(alpha: 0.1),

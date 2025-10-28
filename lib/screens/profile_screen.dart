@@ -8,6 +8,7 @@ import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
+import '../services/notification_service.dart';
 import 'statistics_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -61,10 +62,27 @@ class ProfileScreen extends StatelessWidget {
                               ),
                             ),
                             child: ClipOval(
-                              child: user.profileImage != null
+                              child: user.profileImage != null && File(user.profileImage!).existsSync()
                                   ? Image.file(
                                       File(user.profileImage!),
                                       fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                AppTheme.glassWhite.withValues(alpha: 0.5),
+                                                AppTheme.glassGray.withValues(alpha: 0.5),
+                                              ],
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            user.gender == 'male' ? Icons.male : Icons.female,
+                                            size: 40,
+                                            color: AppTheme.textBlack,
+                                          ),
+                                        );
+                                      },
                                     )
                                   : Container(
                                       decoration: BoxDecoration(
@@ -841,6 +859,30 @@ class ProfileScreen extends StatelessWidget {
                                     color: AppTheme.textGray,
                                   ),
                                 ),
+                                if (waterProvider.waterNotificationsEnabled)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8.0),
+                                    child: TextButton.icon(
+                                      onPressed: () async {
+                                        final notificationService = context.read<NotificationService>();
+                                        await notificationService.showInstantNotification(
+                                          title: 'Olympus Balance',
+                                          body: '💧 Time to drink water! Glass 1 of 8',
+                                        );
+                                        if (context.mounted) {
+                                          CustomToast.success(context, 'Test notification sent');
+                                        }
+                                      },
+                                      icon: const Icon(Icons.notifications_active, size: 16),
+                                      label: const Text('Test Notification'),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: AppTheme.textBlack,
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
