@@ -704,11 +704,13 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
           const SizedBox(height: 8),
           Row(
             children: [
-              _buildMacroChip(context, 'P', meal.protein, Colors.blue),
+              _buildMacroChip(context, 'kcal', meal.calories),
               const SizedBox(width: 8),
-              _buildMacroChip(context, 'C', meal.carbs, Colors.orange),
+              _buildMacroChip(context, 'protein', meal.protein),
               const SizedBox(width: 8),
-              _buildMacroChip(context, 'F', meal.fat, Colors.purple),
+              _buildMacroChip(context, 'carbs', meal.carbs),
+              const SizedBox(width: 8),
+              _buildMacroChip(context, 'fat', meal.fat),
             ],
           ),
           if (meal.foods.isNotEmpty) ...[
@@ -764,19 +766,38 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
     );
   }
 
-  Widget _buildMacroChip(BuildContext context, String label, double value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        '$label: ${value.toStringAsFixed(2)}g',
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: color.withValues(alpha: 0.9),
+  Widget _buildMacroChip(BuildContext context, String label, double value) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.glassGray,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppTheme.borderGray,
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textGray,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label == 'kcal' ? value.toInt().toString() : '${value.toInt()}g',
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.textBlack,
+              ),
+            ),
+          ],
         ),
       ),
     );
