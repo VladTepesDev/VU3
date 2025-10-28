@@ -16,7 +16,7 @@ class WelcomeScreen extends StatelessWidget {
       decoration: const BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/welcome_screen_bg.png'),
-          fit: BoxFit.contain,
+          fit: BoxFit.cover,
         ),
       ),
       child: SafeArea(
@@ -37,23 +37,6 @@ class WelcomeScreen extends StatelessWidget {
                     width: isSmallScreen ? 200 : 250,
                     height: isSmallScreen ? 200 : 250,
                     fit: BoxFit.contain,
-                  ),
-                  
-                  SizedBox(height: isSmallScreen ? 32 : 48),
-                  
-                  GlassContainer(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    child: Text(
-                      'Track your nutrition journey\nwith elegance and ease',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppTheme.textGray,
-                        fontSize: isSmallScreen ? 14 : null,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ),
                   
                   SizedBox(height: isSmallScreen ? 32 : 48),
@@ -96,7 +79,7 @@ class WelcomeScreen extends StatelessWidget {
                       'Get Started',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w600,
-                        color: AppTheme.textWhite,
+                        color: AppTheme.textBlack,
                         fontSize: isSmallScreen ? 16 : null,
                       ),
                     ),

@@ -94,37 +94,24 @@ class _GlassButtonState extends State<GlassButton> {
                     vertical: 16,
                   ),
                   decoration: BoxDecoration(
-                    gradient: widget.isPrimary
-                        ? const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF2C2C2E),
-                              Color(0xFF1C1C1E),
-                            ],
-                          )
-                        : LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              const Color(0xFFFFFFFF).withValues(alpha: 0.8),
-                              const Color(0xFFFAFAFA).withValues(alpha: 0.7),
-                            ],
-                          ),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFFFFFFFF).withValues(alpha: 0.95),
+                        const Color(0xFFFFFFFF).withValues(alpha: 0.9),
+                      ],
+                    ),
                     borderRadius: BorderRadius.circular(widget.borderRadius),
                     border: Border.all(
-                      color: widget.isPrimary 
-                          ? const Color(0xFF3A3A3C).withValues(alpha: 0.8)
-                          : const Color(0xFFFFFFFF).withValues(alpha: 0.9),
+                      color: const Color(0xFFFFFFFF).withValues(alpha: 0.9),
                       width: 1.5,
                     ),
                   ),
                   child: Center(
                     child: DefaultTextStyle(
-                      style: TextStyle(
-                        color: widget.isPrimary
-                            ? const Color(0xFFFFFFFF)
-                            : const Color(0xFF1C1C1E),
+                      style: const TextStyle(
+                        color: Color(0xFF1C1C1E),
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                       ),

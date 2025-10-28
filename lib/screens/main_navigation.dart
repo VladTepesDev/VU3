@@ -40,67 +40,59 @@ class MainNavigationState extends State<MainNavigation> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-        height: 70,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF000000).withValues(alpha: 0.1),
-              blurRadius: 20,
-              spreadRadius: 0,
-              offset: const Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: AppTheme.borderWhite.withValues(alpha: 0.8),
-            width: 1.5,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppTheme.glassWhite.withValues(alpha: 0.85),
-                    AppTheme.glassGray.withValues(alpha: 0.75),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
+        child: SizedBox(
+          height: 70,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.glassWhite.withValues(alpha: 0.3),
+                      AppTheme.glassGray.withValues(alpha: 0.2),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppTheme.borderWhite.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavItem(
+                      icon: Icons.home_outlined,
+                      activeIcon: Icons.home,
+                      label: 'Home',
+                      index: 0,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.add_a_photo_outlined,
+                      activeIcon: Icons.add_a_photo,
+                      label: 'Add Meal',
+                      index: 1,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.menu_book_outlined,
+                      activeIcon: Icons.menu_book,
+                      label: 'Plans',
+                      index: 2,
+                    ),
+                    _buildNavItem(
+                      icon: Icons.person_outline,
+                      activeIcon: Icons.person,
+                      label: 'Profile',
+                      index: 3,
+                    ),
                   ],
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(
-                    icon: Icons.home_outlined,
-                    activeIcon: Icons.home,
-                    label: 'Home',
-                    index: 0,
-                  ),
-                  _buildNavItem(
-                    icon: Icons.add_a_photo_outlined,
-                    activeIcon: Icons.add_a_photo,
-                    label: 'Add Meal',
-                    index: 1,
-                  ),
-                  _buildNavItem(
-                    icon: Icons.menu_book_outlined,
-                    activeIcon: Icons.menu_book,
-                    label: 'Plans',
-                    index: 2,
-                  ),
-                  _buildNavItem(
-                    icon: Icons.person_outline,
-                    activeIcon: Icons.person,
-                    label: 'Profile',
-                    index: 3,
-                  ),
-                ],
               ),
             ),
           ),
