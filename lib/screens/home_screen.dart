@@ -1184,7 +1184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Icon(Icons.camera_alt, color: AppTheme.textBlack, size: 24),
                             SizedBox(width: 12),
                             Text(
-                              'Log with Photo',
+                              'Log personalized Meal',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,

@@ -563,13 +563,6 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _buildSettingsItem(
                       context,
-                      Icons.notifications,
-                      'Notifications',
-                      () => _showNotificationSettings(context),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSettingsItem(
-                      context,
                       Icons.privacy_tip_outlined,
                       'Privacy Policy',
                       () {
@@ -600,13 +593,6 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         );
                       },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildSettingsItem(
-                      context,
-                      Icons.info_outline,
-                      'About',
-                      () => _showAboutDialog(context),
                     ),
                   ],
                 ),
