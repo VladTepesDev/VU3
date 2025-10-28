@@ -330,7 +330,6 @@ class MenusScreen extends StatelessWidget {
               Expanded(
                 child: _buildStatItem(
                   context,
-                  Icons.local_fire_department,
                   '${menu.avgDailyCalories.toInt()}',
                   'kcal/day',
                 ),
@@ -338,7 +337,6 @@ class MenusScreen extends StatelessWidget {
               Expanded(
                 child: _buildStatItem(
                   context,
-                  Icons.restaurant_menu,
                   '${menu.meals.length}',
                   'meals',
                 ),
@@ -451,12 +449,10 @@ class MenusScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {
+  Widget _buildStatItem(BuildContext context, String value, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: AppTheme.textGray),
-        const SizedBox(width: 8),
         Text(
           '$value ',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -465,7 +461,9 @@ class MenusScreen extends StatelessWidget {
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppTheme.textGray,
+          ),
         ),
       ],
     );
@@ -552,14 +550,12 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
             children: [
               _buildStatItem(
                 context,
-                Icons.calendar_today,
                 '${widget.menu.durationDays}',
                 'days',
               ),
               const SizedBox(width: 24),
               _buildStatItem(
                 context,
-                Icons.local_fire_department,
                 '${widget.menu.avgDailyCalories.toInt()}',
                 'kcal/day',
               ),
@@ -689,12 +685,11 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
                 ),
               ),
               const Spacer(),
-              Icon(Icons.local_fire_department, size: 16, color: AppTheme.textGray),
-              const SizedBox(width: 4),
               Text(
-                '${meal.calories.toStringAsFixed(2)} kcal',
+                '${meal.calories.toStringAsFixed(0)} kcal',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: AppTheme.textGray,
                 ),
               ),
             ],
@@ -802,12 +797,10 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
     }
   }
 
-  Widget _buildStatItem(BuildContext context, IconData icon, String value, String label) {
+  Widget _buildStatItem(BuildContext context, String value, String label) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: AppTheme.textGray),
-        const SizedBox(width: 8),
         Text(
           '$value ',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -816,7 +809,9 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
         ),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: AppTheme.textGray,
+          ),
         ),
       ],
     );

@@ -492,7 +492,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     'Protein',
                     '${macros['protein']?.toInt() ?? 0}g',
-                    Icons.egg,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -501,7 +500,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     'Carbs',
                     '${macros['carbs']?.toInt() ?? 0}g',
-                    Icons.rice_bowl,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -510,7 +508,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     'Fat',
                     '${macros['fat']?.toInt() ?? 0}g',
-                    Icons.water_drop,
                   ),
                 ),
               ],
@@ -525,23 +522,26 @@ class _HomeScreenState extends State<HomeScreen> {
     BuildContext context,
     String label,
     String value,
-    IconData icon,
   ) {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(icon, color: AppTheme.textBlack, size: 28),
+          Text(
+            label.toUpperCase(),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppTheme.textGray,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              letterSpacing: 0.5,
+            ),
+          ),
           const SizedBox(height: 8),
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w700,
             ),
-          ),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
@@ -646,9 +646,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.all(18),
                       color: status == MealLogStatus.completed 
                           ? const Color(0xFFE8F5E9) // Soft green when completed
-                          : !canLog
-                              ? AppTheme.textGray.withValues(alpha: 0.1) // Locked appearance
-                              : null,
+                          : status == MealLogStatus.missed
+                              ? const Color(0xFFFFEBEE) // Soft red when missed
+                              : !canLog
+                                  ? AppTheme.textGray.withValues(alpha: 0.1) // Locked appearance
+                                  : null,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -837,27 +839,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               _buildMacroTag(
-                                Icons.local_fire_department,
-                                '${meal.calories.toInt()}',
                                 'kcal',
+                                '${meal.calories.toInt()}',
                               ),
                               const SizedBox(width: 8),
                               _buildMacroTag(
-                                Icons.fitness_center,
-                                '${meal.protein.toInt()}g',
                                 'protein',
+                                '${meal.protein.toInt()}g',
                               ),
                               const SizedBox(width: 8),
                               _buildMacroTag(
-                                Icons.grain,
-                                '${meal.carbs.toInt()}g',
                                 'carbs',
+                                '${meal.carbs.toInt()}g',
                               ),
                               const SizedBox(width: 8),
                               _buildMacroTag(
-                                Icons.opacity,
-                                '${meal.fat.toInt()}g',
                                 'fat',
+                                '${meal.fat.toInt()}g',
                               ),
                             ],
                           ),
@@ -889,7 +887,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget _buildMacroTag(IconData icon, String value, String label) {
+  Widget _buildMacroTag(String label, String value) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
@@ -902,7 +900,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 18, color: AppTheme.textGray),
+            Text(
+              label.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textGray,
+                letterSpacing: 0.5,
+              ),
+            ),
             const SizedBox(height: 4),
             Text(
               value,
@@ -1107,13 +1113,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Expanded(child: _buildMacroChip('${meal.calories.toInt()}', Icons.local_fire_department)),
+                          Expanded(child: _buildMacroChip('kcal', '${meal.calories.toInt()}')),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildMacroChip('${meal.protein.toInt()}g', Icons.fitness_center)),
+                          Expanded(child: _buildMacroChip('protein', '${meal.protein.toInt()}g')),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildMacroChip('${meal.carbs.toInt()}g', Icons.grain)),
+                          Expanded(child: _buildMacroChip('carbs', '${meal.carbs.toInt()}g')),
                           const SizedBox(width: 8),
-                          Expanded(child: _buildMacroChip('${meal.fat.toInt()}g', Icons.opacity)),
+                          Expanded(child: _buildMacroChip('fat', '${meal.fat.toInt()}g')),
                         ],
                       ),
                       const SizedBox(height: 24),
@@ -1227,13 +1233,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMacroChip(String value, IconData icon) {
+  Widget _buildMacroChip(String label, String value) {
     return GlassContainer(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       showShadow: false,
       child: Column(
         children: [
-          Icon(icon, size: 20, color: AppTheme.textGray),
+          Text(
+            label.toUpperCase(),
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textGray,
+              letterSpacing: 0.5,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
             value,

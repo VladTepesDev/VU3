@@ -175,7 +175,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 child: _buildStatCard(
                   'Avg Calories',
                   avgCalories.toInt().toString(),
-                  Icons.local_fire_department,
                   AppTheme.accentOrange,
                 ),
               ),
@@ -184,7 +183,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 child: _buildStatCard(
                   'Streak',
                   '$streak days',
-                  Icons.bolt,
                   AppTheme.accentPurple,
                 ),
               ),
@@ -193,7 +191,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 child: _buildStatCard(
                   'Days Tracked',
                   totalDays.toString(),
-                  Icons.calendar_today,
                   AppTheme.accentBlue,
               ),
             ),
@@ -204,12 +201,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String label, String value, Color color) {
     return GlassContainer(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -218,15 +224,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppTheme.textGray,
-              fontSize: 12,
-            ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),

@@ -342,29 +342,28 @@ class _AddMealScreenState extends State<AddMealScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-                  colors: [
-                    AppTheme.textBlack,
-                    AppTheme.textDarkGray,
-                  ],
-                )
-              : null,
-          color: isSelected ? null : Colors.transparent,
-          border: Border.all(
-            color: isSelected
-                ? AppTheme.textBlack
-                : AppTheme.borderGray,
-            width: isSelected ? 2 : 1.5,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.glassWhite.withValues(alpha: isSelected ? 0.4 : 0.25),
+              AppTheme.glassGray.withValues(alpha: isSelected ? 0.3 : 0.15),
+            ],
           ),
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.borderGray.withValues(alpha: 0.6)
+                : AppTheme.borderGray.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1.5,
+          ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppTheme.textWhite : AppTheme.textGray,
+            color: AppTheme.textBlack,
             fontSize: 13,
-            fontWeight: FontWeight.w600,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
           ),
           textAlign: TextAlign.center,
         ),
