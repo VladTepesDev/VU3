@@ -186,13 +186,13 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildMealTypeChip('breakfast', '🍳 Breakfast'),
+                            _buildMealTypeChip('breakfast', 'Breakfast'),
                             const SizedBox(width: 8),
-                            _buildMealTypeChip('lunch', '🥗 Lunch'),
+                            _buildMealTypeChip('lunch', 'Lunch'),
                             const SizedBox(width: 8),
-                            _buildMealTypeChip('dinner', '🍽️ Dinner'),
+                            _buildMealTypeChip('dinner', 'Dinner'),
                             const SizedBox(width: 8),
-                            _buildMealTypeChip('snack', '🍎 Snack'),
+                            _buildMealTypeChip('snack', 'Snack'),
                           ],
                         ),
                       ),

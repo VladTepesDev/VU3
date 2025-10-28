@@ -594,9 +594,6 @@ class _HomeScreenState extends State<HomeScreen> {
         if (todayMeals.isEmpty) {
           return const SizedBox.shrink();
         }
-        
-        // Get today's manual meals to check for meal slot coverage
-        final todayManualMeals = mealProvider.getTodayMeals()?.meals ?? [];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,7 +606,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ...todayMeals.map((meal) {
               final mealLog = menuProvider.getMealLog(meal.id, DateTime.now());
               final status = mealLog?.status ?? MealLogStatus.upcoming;
-              final canLog = menuProvider.canLogMeal(meal.id, todayManualMeals: todayManualMeals);
+              final canLog = menuProvider.canLogMeal(meal.id);
               final isInteractive = canLog || status == MealLogStatus.completed || status == MealLogStatus.missed;
               final hasPhoto = mealLog?.imagePath != null;
               
@@ -898,9 +895,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showLogMealDialog(BuildContext context, meal, MenuProvider menuProvider) {
-    final mealProvider = context.read<MealProvider>();
-    final todayManualMeals = mealProvider.getTodayMeals()?.meals ?? [];
-    final canLog = menuProvider.canLogMeal(meal.id, todayManualMeals: todayManualMeals);
+    final canLog = menuProvider.canLogMeal(meal.id);
     final nextMeal = menuProvider.getNextMealToLog();
     
     // If meal is locked, show info message instead

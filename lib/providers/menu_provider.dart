@@ -360,7 +360,7 @@ class MenuProvider extends ChangeNotifier {
   
   /// Check if a meal can be logged based on sequential ordering
   /// A meal can only be logged if all previous meals (by scheduled time) are completed, missed, or replaced by manual meals
-  bool canLogMeal(String menuMealId, {List<dynamic>? todayManualMeals}) {
+  bool canLogMeal(String menuMealId) {
     if (_activeMenu == null) return true; // No restrictions if no active menu
     
     final todayMeals = getTodayMenuMeals();
@@ -373,43 +373,29 @@ class MenuProvider extends ChangeNotifier {
     // First meal can always be logged
     if (mealIndex == 0) return true;
     
-    // Debug: print manual meals
+    // Debug: print current state
     debugPrint('=== canLogMeal Debug ===');
     debugPrint('Checking meal: ${todayMeals[mealIndex].name} (${todayMeals[mealIndex].mealType})');
-    debugPrint('Manual meals count: ${todayManualMeals?.length ?? 0}');
-    if (todayManualMeals != null) {
-      for (var m in todayManualMeals) {
-        debugPrint('  - Manual meal: ${m.name} (${m.mealType})');
-      }
-    }
     
-    // Get all manual meal types added today
-    final manualMealTypes = todayManualMeals?.map((m) => m.mealType.toLowerCase()).toSet() ?? {};
-    
-    // Check if all previous meals are completed, missed, or replaced by manual meals
+    // Check if all previous PLAN meals are completed or missed
+    // Manual meals do NOT unlock plan meals - only completing plan meals does
     final today = DateTime.now();
     for (int i = 0; i < mealIndex; i++) {
       final previousMeal = todayMeals[i];
       final log = getMealLog(previousMeal.id, today);
-      final previousMealType = previousMeal.mealType.toLowerCase();
       
       debugPrint('Checking previous meal ${i + 1}: ${previousMeal.name} (${previousMeal.mealType})');
+      debugPrint('  - Log status: ${log?.status}');
       
-      // Check if this meal slot is satisfied by:
-      // 1. A manual meal of the same type
-      final hasManualMeal = manualMealTypes.contains(previousMealType);
-      
-      // 2. OR the meal log shows completed/missed
+      // The meal must be completed or missed to unlock the next meal
       final isLoggedOrMissed = log != null && 
           (log.status == MealLogStatus.completed || log.status == MealLogStatus.missed);
       
-      debugPrint('  - Has manual meal of type: $hasManualMeal');
-      debugPrint('  - Log status: ${log?.status}');
-      debugPrint('  - Is satisfied: ${hasManualMeal || isLoggedOrMissed}');
+      debugPrint('  - Is satisfied: $isLoggedOrMissed');
       
-      // If this previous meal slot is not satisfied, block the current meal
-      if (!hasManualMeal && !isLoggedOrMissed) {
-        debugPrint('  - BLOCKED! Previous meal not satisfied');
+      // If this previous plan meal is not completed or missed, block the current meal
+      if (!isLoggedOrMissed) {
+        debugPrint('  - BLOCKED! Previous plan meal not completed or missed');
         return false;
       }
     }

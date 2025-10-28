@@ -330,13 +330,89 @@ class MenusScreen extends StatelessWidget {
     return _MenuCardExpanded(
       menu: menu,
       isActive: isActive,
-      onFollow: () {
-        menuProvider.setActiveMenu(menu);
-        CustomToast.success(context, 'Now following ${menu.name}');
-      },
+      onFollow: () => _showFollowConfirmation(context, menu, menuProvider),
       onDelete: menu.isCustom
           ? () => _showDeleteDialog(context, menu, menuProvider)
           : null,
+    );
+  }
+
+  void _showFollowConfirmation(BuildContext context, Menu menu, MenuProvider menuProvider) {
+    final hasActivePlan = menuProvider.activeMenu != null;
+    final isChangingPlan = hasActivePlan && menuProvider.activeMenu?.id != menu.id;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.glassWhite,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: AppTheme.borderGray.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
+        title: Text(
+          isChangingPlan ? 'Change Meal Plan?' : 'Follow This Plan?',
+          style: const TextStyle(
+            color: AppTheme.textBlack,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isChangingPlan) ...[
+              Text(
+                'You are currently following "${menuProvider.activeMenu!.name}".',
+                style: const TextStyle(color: AppTheme.textGray),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Switching to "${menu.name}" will reset your current progress for today.',
+                style: const TextStyle(color: AppTheme.textBlack),
+              ),
+            ] else ...[
+              Text(
+                'Start following "${menu.name}"?',
+                style: const TextStyle(color: AppTheme.textBlack),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'You\'ll get personalized daily meal plans with ${menu.avgDailyCalories.toInt()} kcal/day.',
+                style: const TextStyle(color: AppTheme.textGray, fontSize: 14),
+              ),
+            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppTheme.textGray),
+            ),
+          ),
+          GlassButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              menuProvider.setActiveMenu(menu);
+              if (context.mounted) {
+                CustomToast.success(context, 'Now following ${menu.name}');
+              }
+            },
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            child: Text(
+              isChangingPlan ? 'Switch Plan' : 'Follow Plan',
+              style: const TextStyle(
+                color: AppTheme.textBlack,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
