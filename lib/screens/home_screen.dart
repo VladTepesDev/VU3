@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
         image: DecorationImage(
           image: AssetImage('assets/images/app_background.png'),
           fit: BoxFit.cover,
-          opacity: 0.2,
+          opacity: 0.6,
         ),
       ),
       child: SafeArea(
@@ -91,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // App Bar
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.fromLTRB(20.0, 23.0, 20.0, 20.0),
                 child: Consumer<UserProvider>(
                   builder: (context, userProvider, _) {
                     final user = userProvider.userProfile;
@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(
                                     'Welcome back!',
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: AppTheme.textGray,
+                                          color: AppTheme.textBlack,
                                         ),
                                   ),
                                 ],
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(
                             DateFormat('EEEE, MMMM d').format(DateTime.now()),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textGray,
+                                  color: AppTheme.textBlack,
                                 ),
                           ),
                         ),
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'Today\'s Calories',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppTheme.textGray,
+                  color: AppTheme.textBlack,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -324,14 +324,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: Theme.of(context).textTheme.displayLarge?.copyWith(
                             fontWeight: FontWeight.w700,
                             fontSize: 56,
-                            color: consumedCalories > 0 ? zoneColor : AppTheme.textGray,
+                            color: consumedCalories > 0 ? zoneColor : AppTheme.textBlack,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'kcal',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppTheme.textGray,
+                            color: AppTheme.textBlack,
                             fontSize: 15,
                             letterSpacing: 0.5,
                           ),

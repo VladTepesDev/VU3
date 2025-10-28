@@ -125,14 +125,14 @@ class MainNavigationState extends State<MainNavigation> {
             children: [
               Icon(
                 isSelected ? activeIcon : icon,
-                color: isSelected ? AppTheme.textBlack : AppTheme.textGray,
+                color: AppTheme.textBlack,
                 size: 24,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.textBlack : AppTheme.textGray,
+                  color: AppTheme.textBlack,
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
