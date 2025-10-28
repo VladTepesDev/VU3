@@ -139,40 +139,56 @@ class _AddMealScreenState extends State<AddMealScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                      // Image Picker
-                      GestureDetector(
-                        onTap: () => _showImageSourceDialog(),
-                        child: GlassContainer(
-                          width: double.infinity,
-                          height: 160,
-                          child: _imageFile != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.file(
-                                    _imageFile!,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
-                                  ),
-                                )
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.add_a_photo,
-                                      size: 40,
-                                      color: AppTheme.textGray.withValues(alpha: 0.7),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Tap to add photo',
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: AppTheme.textGray,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
+                    
+                    // Green bubble shadow, bottom-left positioned
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.bubbleShadowGreen,
+                            blurRadius: 80,
+                            spreadRadius: 10,
+                            offset: const Offset(-20, 15),
+                          ),
+                        ],
                       ),
+                      child: Column(
+                        children: [
+                          // Image Picker
+                          GestureDetector(
+                            onTap: () => _showImageSourceDialog(),
+                            child: GlassContainer(
+                              width: double.infinity,
+                              height: 160,
+                              child: _imageFile != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Image.file(
+                                        _imageFile!,
+                                        fit: BoxFit.cover,
+                                        width: double.infinity,
+                                      ),
+                                    )
+                                  : Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.add_a_photo,
+                                          size: 40,
+                                          color: AppTheme.textGray.withValues(alpha: 0.7),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'Tap to add photo',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: AppTheme.textGray,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
                       
                       const SizedBox(height: 16),
                       
@@ -297,17 +313,20 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           ),
                         ),
                       ),
-                      
-                      const SizedBox(height: 16), // Bottom padding for keyboard
                     ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-    );
-  }
+                  ), // Close inner Column (bubble content)
+                ), // Close bubble Container
+                      
+                const SizedBox(height: 16), // Bottom padding for keyboard
+              ],
+            ), // Close outer Column (Form child)
+          ), // Close Form
+        ), // Close Padding
+      ), // Close SingleChildScrollView
+    ), // Close SafeArea
+  ), // Close Container (Scaffold body)
+); // Close Scaffold (return statement)
+}
 
   Widget _buildMealTypeChip(String type, String label) {
     final isSelected = _selectedMealType == type;

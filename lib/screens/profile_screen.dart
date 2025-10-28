@@ -10,6 +10,7 @@ import '../providers/meal_provider.dart';
 import '../providers/water_provider.dart';
 import '../services/notification_service.dart';
 import 'statistics_screen.dart';
+import 'webview_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -46,9 +47,22 @@ class ProfileScreen extends StatelessWidget {
                       return const SizedBox();
                     }
                     
-                    return GlassContainer(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
+                    // Purple bubble shadow, center positioned
+                    return Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.bubbleShadowPurple,
+                            blurRadius: 80,
+                            spreadRadius: 10,
+                            offset: const Offset(0, 25),
+                          ),
+                        ],
+                      ),
+                      child: GlassContainer(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
                         children: [
                           // Profile Image
                           Container(
@@ -226,6 +240,7 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                    ),
                     );
                   },
                 ),
@@ -547,6 +562,40 @@ class ProfileScreen extends StatelessWidget {
                       Icons.notifications,
                       'Notifications',
                       () => _showNotificationSettings(context),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSettingsItem(
+                      context,
+                      Icons.privacy_tip_outlined,
+                      'Privacy Policy',
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WebViewScreen(
+                              url: 'https://www.example.com/privacy-policy',
+                              title: 'Privacy Policy',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSettingsItem(
+                      context,
+                      Icons.description_outlined,
+                      'Terms of Service',
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WebViewScreen(
+                              url: 'https://www.example.com/terms-of-service',
+                              title: 'Terms of Service',
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     _buildSettingsItem(

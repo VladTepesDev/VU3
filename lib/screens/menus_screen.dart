@@ -59,7 +59,23 @@ class MenusScreen extends StatelessWidget {
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 12),
-                          _buildActiveMenuCard(context, activeMenu, menuProvider),
+                          
+                          // Green bubble shadow, bottom-right positioned
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.bubbleShadowGreen,
+                                  blurRadius: 80,
+                                  spreadRadius: 10,
+                                  offset: const Offset(15, 20),
+                                ),
+                              ],
+                            ),
+                            child: _buildActiveMenuCard(context, activeMenu, menuProvider),
+                          ),
+                          
                           const SizedBox(height: 24),
                         ],
                       ),
@@ -125,9 +141,28 @@ class MenusScreen extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final menu = availableMenus[index];
+                        
+                        // Alternate between blue and purple shadows
+                        final shadowColor = index % 2 == 0 
+                            ? AppTheme.bubbleShadowBlue 
+                            : AppTheme.bubbleShadowPurple;
+                        
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildMenuCard(context, menu, menuProvider),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(32),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: shadowColor,
+                                  blurRadius: 80,
+                                  spreadRadius: 10,
+                                  offset: Offset(index % 2 == 0 ? -10 : 10, 10),
+                                ),
+                              ],
+                            ),
+                            child: _buildMenuCard(context, menu, menuProvider),
+                          ),
                         );
                       },
                       childCount: availableMenus.length,

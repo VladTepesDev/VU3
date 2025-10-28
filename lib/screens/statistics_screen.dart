@@ -152,35 +152,49 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         final streak = mealProvider.getCurrentStreak();
         final totalDays = stats.length;
 
-        return Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                'Avg Calories',
-                avgCalories.toInt().toString(),
-                Icons.local_fire_department,
-                AppTheme.accentOrange,
+        // Red bubble shadow, top-right positioned
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.bubbleShadowRed,
+                blurRadius: 80,
+                spreadRadius: 10,
+                offset: const Offset(20, -10),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                'Streak',
-                '$streak days',
-                Icons.bolt,
-                AppTheme.accentPurple,
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildStatCard(
+                  'Avg Calories',
+                  avgCalories.toInt().toString(),
+                  Icons.local_fire_department,
+                  AppTheme.accentOrange,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                'Days Tracked',
-                totalDays.toString(),
-                Icons.calendar_today,
-                AppTheme.accentBlue,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Streak',
+                  '$streak days',
+                  Icons.bolt,
+                  AppTheme.accentPurple,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildStatCard(
+                  'Days Tracked',
+                  totalDays.toString(),
+                  Icons.calendar_today,
+                  AppTheme.accentBlue,
               ),
             ),
           ],
+        ),
         );
       },
     );

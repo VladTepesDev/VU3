@@ -197,11 +197,31 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   const SizedBox(height: 16),
-                  _buildTodaysSummary(context),
-                  const SizedBox(height: 24),
-                  _buildMacrosBreakdown(context),
-                  const SizedBox(height: 24),
-                  _buildMealSchedule(context),
+                  
+                  // Big Bubble Container - Blue shadow, top-left positioned
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.bubbleShadowBlue,
+                          blurRadius: 80,
+                          spreadRadius: 10,
+                          offset: const Offset(-15, 15),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        _buildTodaysSummary(context),
+                        const SizedBox(height: 24),
+                        _buildMacrosBreakdown(context),
+                        const SizedBox(height: 24),
+                        _buildMealSchedule(context),
+                      ],
+                    ),
+                  ),
+                  
                   const SizedBox(height: 24),
                   _buildQuickActions(context),
                   const SizedBox(height: 24),

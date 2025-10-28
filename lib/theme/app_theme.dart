@@ -23,6 +23,12 @@ class AppTheme {
   // Shadows
   static const Color shadowLight = Color(0x1A000000);
   static const Color shadowDark = Color(0x0D000000);
+  
+  // Subtle colorful shadows for bubble elements (different colors per page)
+  static const Color bubbleShadowBlue = Color(0x3064B5F6);    // Soft blue - 19% opacity
+  static const Color bubbleShadowGreen = Color(0x3081C784);   // Soft green - 19% opacity
+  static const Color bubbleShadowRed = Color(0x30EF5350);     // Soft red - 19% opacity
+  static const Color bubbleShadowPurple = Color(0x30AB47BC);  // Soft purple - 19% opacity
 
   // Accent colors for statistics and charts
   static const Color accentOrange = Color(0xFFFF9800);
