@@ -6,6 +6,7 @@ import '../services/storage_service.dart';
 class UserProvider extends ChangeNotifier {
   final StorageService _storageService;
   UserProfile? _userProfile;
+  bool _isLoading = true;
 
   UserProvider(this._storageService) {
     _loadUserProfile();
@@ -13,8 +14,10 @@ class UserProvider extends ChangeNotifier {
 
   UserProfile? get userProfile => _userProfile;
   bool get hasProfile => _userProfile != null;
+  bool get isLoading => _isLoading;
 
   Future<void> _loadUserProfile() async {
+    _isLoading = true;
     _userProfile = await _storageService.getUserProfile();
     
     // Check if profile image path is valid, if not clear it
@@ -44,6 +47,7 @@ class UserProvider extends ChangeNotifier {
       }
     }
     
+    _isLoading = false;
     notifyListeners();
   }
 

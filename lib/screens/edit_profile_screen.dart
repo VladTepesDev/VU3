@@ -407,14 +407,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: const Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.check_circle, color: AppTheme.textWhite),
+                              Icon(Icons.check_circle, color: AppTheme.textBlack),
                               SizedBox(width: 12),
                               Text(
                                 'Save Changes',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.textWhite,
+                                  color: AppTheme.textBlack,
                                 ),
                               ),
                             ],

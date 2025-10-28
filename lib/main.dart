@@ -10,6 +10,7 @@ import 'providers/meal_provider.dart';
 import 'providers/menu_provider.dart';
 import 'providers/water_provider.dart';
 import 'screens/welcome_screen.dart';
+import 'screens/loading_screen.dart';
 import 'screens/main_navigation.dart';
 import 'screens/edit_profile_screen.dart';
 import 'screens/add_meal_screen.dart';
@@ -83,12 +84,14 @@ class AppInitializer extends StatefulWidget {
 
 class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObserver {
   DateTime? _lastCheckDate;
+  bool _isInitialized = false;
+  Widget? _targetScreen;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAndHandleDayChange();
+    _initializeApp();
     
     // Listen to day change service
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -96,6 +99,48 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
       final dayChangeService = context.read<DayChangeService>();
       dayChangeService.addListener(_handleDayChange);
     });
+  }
+
+  Future<void> _initializeApp() async {
+    final startTime = DateTime.now();
+    
+    // Run all initialization tasks in parallel
+    await Future.wait([
+      _checkAndHandleDayChange(),
+      _determineTargetScreen(),
+      Future.delayed(const Duration(seconds: 3)), // Minimum 3 seconds
+    ]);
+    
+    // Ensure we've waited at least 3 seconds total
+    final elapsed = DateTime.now().difference(startTime);
+    if (elapsed.inSeconds < 3) {
+      await Future.delayed(Duration(seconds: 3 - elapsed.inSeconds));
+    }
+    
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+    }
+  }
+
+  Future<void> _determineTargetScreen() async {
+    final storageService = context.read<StorageService>();
+    final userProvider = context.read<UserProvider>();
+    
+    // Wait for user profile to load
+    while (userProvider.isLoading) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+    
+    final isFirstLaunch = await storageService.isFirstLaunch();
+    final hasProfile = userProvider.hasProfile;
+    
+    if (isFirstLaunch || !hasProfile) {
+      _targetScreen = const WelcomeScreen();
+    } else {
+      _targetScreen = MainNavigation();
+    }
   }
 
   @override
@@ -146,33 +191,12 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<bool>(
-      future: context.read<StorageService>().isFirstLaunch(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
-            ),
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.textBlack),
-              ),
-            ),
-          );
-        }
-        
-        final isFirstLaunch = snapshot.data ?? true;
-        
-        // Check if user has profile
-        final hasProfile = context.watch<UserProvider>().hasProfile;
-        
-        if (isFirstLaunch || !hasProfile) {
-          return const WelcomeScreen();
-        }
-        
-        return MainNavigation();
-      },
-    );
+    // Always show loading screen until fully initialized
+    if (!_isInitialized || _targetScreen == null) {
+      return const LoadingScreen();
+    }
+    
+    // Show the determined target screen
+    return _targetScreen!;
   }
 }

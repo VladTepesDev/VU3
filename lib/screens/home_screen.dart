@@ -1142,7 +1142,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.check_circle, color: AppTheme.textWhite, size: 24),
+                            Icon(Icons.check_circle, color: AppTheme.textBlack, size: 24),
                             SizedBox(width: 12),
                             Text(
                               'Quick Log',

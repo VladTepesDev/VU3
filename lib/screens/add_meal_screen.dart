@@ -126,16 +126,18 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Back button and title
+                    // Title (back button only shown when pushed as a route)
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back),
-                          onPressed: () => Navigator.pop(context),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                        ),
-                        const SizedBox(width: 8),
+                        if (Navigator.canPop(context))
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () => Navigator.pop(context),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        if (Navigator.canPop(context))
+                          const SizedBox(width: 8),
                         Text(
                           'Add Meal',
                           style: Theme.of(context).textTheme.displaySmall,
