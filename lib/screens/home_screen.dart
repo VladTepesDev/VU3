@@ -14,6 +14,7 @@ import '../providers/water_provider.dart';
 import '../providers/menu_provider.dart';
 import '../models/meal_log.dart';
 import 'edit_meal_screen.dart';
+import 'main_navigation.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -527,7 +528,66 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer2<MenuProvider, MealProvider>(
       builder: (context, menuProvider, mealProvider, _) {
         if (menuProvider.activeMenu == null) {
-          return const SizedBox.shrink();
+          return GlassContainer(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppTheme.glassWhite.withValues(alpha: 0.5),
+                        AppTheme.glassGray.withValues(alpha: 0.5),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_menu,
+                    size: 48,
+                    color: AppTheme.textBlack,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No Meal Plan Selected',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Choose a meal plan to get personalized daily meals',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textGray,
+                      ),
+                ),
+                const SizedBox(height: 20),
+                GlassButton(
+                  onPressed: () {
+                    // Switch to Plans tab (index 2)
+                    mainNavigationKey.currentState?.changeTab(2);
+                  },
+                  width: double.infinity,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.explore, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Choose a Plan',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         final todayMeals = menuProvider.getTodayMenuMeals();

@@ -171,7 +171,7 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
           return const WelcomeScreen();
         }
         
-        return const MainNavigation();
+        return MainNavigation();
       },
     );
   }

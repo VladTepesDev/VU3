@@ -6,15 +6,24 @@ import 'add_meal_screen.dart';
 import 'menus_screen.dart';
 import 'profile_screen.dart';
 
+// Global key to access MainNavigation state
+final mainNavigationKey = GlobalKey<MainNavigationState>();
+
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  MainNavigation({Key? key}) : super(key: key ?? mainNavigationKey);
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainNavigation> createState() => MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+
+  void changeTab(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   final List<Widget> _screens = const [
     HomeScreen(),

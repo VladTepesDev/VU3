@@ -581,7 +581,7 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
               Icon(Icons.local_fire_department, size: 16, color: AppTheme.textGray),
               const SizedBox(width: 4),
               Text(
-                '${meal.calories} kcal',
+                '${meal.calories.toStringAsFixed(2)} kcal',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
@@ -629,7 +629,7 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '${food.name}: ${food.amount}${food.unit}',
+                      '${food.name}: ${food.amount.toStringAsFixed(2)}${food.unit}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),
@@ -666,7 +666,7 @@ class _MenuCardExpandedState extends State<_MenuCardExpanded> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        '$label: ${value.toInt()}g',
+        '$label: ${value.toStringAsFixed(2)}g',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           fontSize: 11,
           fontWeight: FontWeight.w500,

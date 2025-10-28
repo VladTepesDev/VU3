@@ -554,7 +554,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
       
       navigator.pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const MainNavigation(),
+          builder: (context) => MainNavigation(),
         ),
       );
     }
