@@ -86,6 +86,7 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
   DateTime? _lastCheckDate;
   bool _isInitialized = false;
   Widget? _targetScreen;
+  bool _showTarget = false;
 
   @override
   void initState() {
@@ -121,6 +122,15 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
       setState(() {
         _isInitialized = true;
       });
+      
+      // Wait for zoom animation to complete before fading
+      await Future.delayed(const Duration(milliseconds: 600));
+      
+      if (mounted) {
+        setState(() {
+          _showTarget = true;
+        });
+      }
     }
   }
 
@@ -191,12 +201,13 @@ class _AppInitializerState extends State<AppInitializer> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
-    // Always show loading screen until fully initialized
-    if (!_isInitialized || _targetScreen == null) {
-      return const LoadingScreen();
-    }
-    
-    // Show the determined target screen
-    return _targetScreen!;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 800),
+      switchInCurve: Curves.easeIn,
+      switchOutCurve: Curves.easeOut,
+      child: _isInitialized && _showTarget && _targetScreen != null
+          ? _targetScreen!
+          : LoadingScreen(shouldZoomOut: _isInitialized),
+    );
   }
 }
