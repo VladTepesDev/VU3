@@ -146,15 +146,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         GlassContainer(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Profile',
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 28),
                               
                               // Profile Image
                               Center(
@@ -222,16 +224,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ),
                               ),
                               
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 28),
                               
                               // Name
                               TextFormField(
                                 controller: _nameController,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 16),
                                 decoration: const InputDecoration(
                                   labelText: 'Name',
+                                  labelStyle: TextStyle(fontSize: 15),
                                   hintText: 'Enter your name',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   isDense: true,
                                 ),
                               ),
@@ -239,22 +242,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 20),
                         
                         GlassContainer(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Basic Information',
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
                               
                               // Gender
-                              Text('Gender', style: Theme.of(context).textTheme.bodySmall),
-                              const SizedBox(height: 6),
+                              Text('Gender', style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              )),
+                              const SizedBox(height: 12),
                               Row(
                                 children: [
                                   Expanded(
@@ -267,17 +274,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ],
                               ),
                               
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
                               
                               // Age
                               TextFormField(
                                 controller: _ageController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 16),
                                 decoration: const InputDecoration(
                                   labelText: 'Age',
+                                  labelStyle: TextStyle(fontSize: 15),
                                   suffixText: 'years',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   isDense: true,
                                 ),
                                 validator: (value) {
@@ -292,17 +300,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 20),
                               
                               // Height
                               TextFormField(
                                 controller: _heightController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 16),
                                 decoration: const InputDecoration(
                                   labelText: 'Height',
+                                  labelStyle: TextStyle(fontSize: 15),
                                   suffixText: 'cm',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   isDense: true,
                                 ),
                                 validator: (value) {
@@ -317,17 +326,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 20),
                               
                               // Weight
                               TextFormField(
                                 controller: _weightController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 16),
                                 decoration: const InputDecoration(
-                                  labelText: 'Current Weight',
+                                  labelText: 'Weight',
+                                  labelStyle: TextStyle(fontSize: 15),
                                   suffixText: 'kg',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   isDense: true,
                                 ),
                                 validator: (value) {
@@ -342,17 +352,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
                               
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 20),
                               
                               // Target Weight
                               TextFormField(
                                 controller: _targetWeightController,
                                 keyboardType: TextInputType.number,
-                                style: const TextStyle(fontSize: 14),
+                                style: const TextStyle(fontSize: 16),
                                 decoration: const InputDecoration(
                                   labelText: 'Target Weight',
+                                  labelStyle: TextStyle(fontSize: 15),
                                   suffixText: 'kg',
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                                   isDense: true,
                                 ),
                                 validator: (value) {
@@ -369,37 +380,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         
-                        const SizedBox(height: 16),
-                        
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 28),
                         
                         GlassContainer(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Activity & Goals',
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
                               
                               // Activity Level
-                              Text('Activity Level', style: Theme.of(context).textTheme.bodySmall),
-                              const SizedBox(height: 6),
+                              Text(
+                                'Activity Level',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                               _buildActivityDropdown(),
                               
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 24),
                               
                               // Goal
-                              Text('Your Goal', style: Theme.of(context).textTheme.bodySmall),
-                              const SizedBox(height: 6),
+                              Text(
+                                'Your Goal',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
                               _buildGoalDropdown(),
                             ],
                           ),
                         ),
                         
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 28),
                         
                         GlassButton(
                           isPrimary: true,
