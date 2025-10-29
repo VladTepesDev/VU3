@@ -51,10 +51,5 @@
 	<string>Select photos from your library to add meals to your nutrition log.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Record audio feedback and meal notifications.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>background-processing</string>
-		<string>background-fetch</string>
-	</array>
 </dict>
 </plist>
