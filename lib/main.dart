@@ -30,7 +30,6 @@ void main() async {
   // Initialize notification service
   final notificationService = NotificationService();
   await notificationService.initialize();
-  await notificationService.requestPermissions();
   
   // Initialize sound service
   final soundService = SoundService();
