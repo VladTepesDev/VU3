@@ -41,29 +41,28 @@ class MainNavigationState extends State<MainNavigation> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: SizedBox(
-        height: 70,
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                AppTheme.glassWhite.withValues(alpha: 0.3),
-                AppTheme.glassGray.withValues(alpha: 0.2),
-              ],
-            ),
-            border: Border(
-              top: BorderSide(
-                color: AppTheme.borderWhite.withValues(alpha: 0.5),
-                width: 1.5,
-              ),
-              bottom: BorderSide(
-                color: AppTheme.borderWhite.withValues(alpha: 0.5),
-                width: 1.5,
-              ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppTheme.glassWhite.withValues(alpha: 0.3),
+              AppTheme.glassGray.withValues(alpha: 0.2),
+            ],
+          ),
+          border: Border(
+            top: BorderSide(
+              color: AppTheme.borderWhite.withValues(alpha: 0.5),
+              width: 1.5,
             ),
           ),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom / 2,
+        ),
+        child: SizedBox(
+          height: 70,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
