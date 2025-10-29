@@ -605,7 +605,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const WebViewScreen(
-                              url: 'https://www.example.com/privacy-policy',
+                              url: 'https://www.freeprivacypolicy.com/live/04014b68-61f4-40ce-94a1-8e5afa9aabda',
                               title: 'Privacy Policy',
                             ),
                           ),
@@ -622,7 +622,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const WebViewScreen(
-                              url: 'https://www.example.com/terms-of-service',
+                              url: 'https://www.termsfeed.com/live/0eca96ea-2453-446b-8b80-055dd17f281f',
                               title: 'Terms of Service',
                             ),
                           ),
