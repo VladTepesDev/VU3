@@ -138,6 +138,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
           ),
         ),
         child: SafeArea(
+          top: false, // Header handles top safe area
           child: SingleChildScrollView(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,

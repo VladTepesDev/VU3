@@ -58,6 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       child: SafeArea(
+        top: false, // Header handles top safe area
         child: CustomScrollView(
           slivers: [
             // App Bar

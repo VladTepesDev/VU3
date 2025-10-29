@@ -23,6 +23,7 @@ class MenusScreen extends StatelessWidget {
         ),
       ),
       child: SafeArea(
+        top: false, // Header handles top safe area
         child: CustomScrollView(
           slivers: [
             // App Bar
