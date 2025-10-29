@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,39 +42,37 @@ class MainNavigationState extends State<MainNavigation> {
       extendBody: false,
       body: Column(
         children: [
+          // Space at the top of the screen for notch/island
+          SizedBox(height: MediaQuery.of(context).padding.top - 6),
           // Fixed header
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppTheme.glassWhite.withValues(alpha: 0.3),
-                  AppTheme.glassGray.withValues(alpha: 0.2),
-                ],
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: AppTheme.borderWhite.withValues(alpha: 0.5),
-                  width: 1.5,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppTheme.glassWhite.withValues(alpha: 0.3),
+                    AppTheme.glassGray.withValues(alpha: 0.2),
+                  ],
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: AppTheme.borderWhite.withValues(alpha: 0.5),
+                    width: 1.5,
+                  ),
                 ),
               ),
-            ),
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top / 2,
-              left: 20,
-              right: 20,
-              bottom: 16,
-            ),
-            child: Consumer<UserProvider>(
-              builder: (context, userProvider, _) {
-                final user = userProvider.userProfile;
-                final userName = user?.name ?? 'User';
-                
-                return Column(
-                  children: [
-                    // Profile Image and Name
-                    Row(
+              padding: EdgeInsets.zero,
+              child: SizedBox(
+              height: 70,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Consumer<UserProvider>(
+                  builder: (context, userProvider, _) {
+                    final user = userProvider.userProfile;
+                    final userName = user?.name ?? 'User';
+                    
+                    return Row(
                       children: [
                         // Profile Image
                         Container(
@@ -133,6 +130,7 @@ class MainNavigationState extends State<MainNavigation> {
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
                                 userName,
@@ -141,32 +139,32 @@ class MainNavigationState extends State<MainNavigation> {
                                     ),
                               ),
                               const SizedBox(height: 2),
-                              Text(
-                                'Welcome back!',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: AppTheme.textBlack,
-                                    ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Welcome back!',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: AppTheme.textBlack,
+                                        ),
+                                  ),
+                                  Text(
+                                    DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: AppTheme.textBlack.withValues(alpha: 0.7),
+                                          fontSize: 11,
+                                        ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Date
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textBlack.withValues(alpha: 0.7),
-                              fontSize: 11,
-                            ),
-                      ),
-                    ),
-                  ],
-                );
-              },
+                    );
+                  },
+                ),
+              ),
             ),
           ),
           // Body content
