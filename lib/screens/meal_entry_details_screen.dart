@@ -184,10 +184,14 @@ class MealEntryDetailsScreen extends StatelessWidget {
                                 color: AppTheme.textGray,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                DateFormat('EEEE, MMMM d, yyyy • h:mm a').format(mealEntry.timestamp),
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.textGray,
+                              Expanded(
+                                child: Text(
+                                  DateFormat('EEEE, MMMM d, yyyy • h:mm a').format(mealEntry.timestamp),
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppTheme.textGray,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
                                 ),
                               ),
                             ],
@@ -203,12 +207,14 @@ class MealEntryDetailsScreen extends StatelessWidget {
                                 color: AppTheme.textGray,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                mealEntry.source == 'manual' 
-                                    ? 'Manually logged' 
-                                    : 'From meal plan',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: AppTheme.textGray,
+                              Expanded(
+                                child: Text(
+                                  mealEntry.source == 'manual' 
+                                      ? 'Manually logged' 
+                                      : 'From meal plan',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppTheme.textGray,
+                                  ),
                                 ),
                               ),
                             ],
