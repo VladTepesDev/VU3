@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/sound_service.dart';
 import 'home_screen.dart';
 import 'add_meal_screen.dart';
 import 'menus_screen.dart';
@@ -112,6 +113,7 @@ class MainNavigationState extends State<MainNavigation> {
     return Expanded(
       child: InkWell(
         onTap: () {
+          SoundService().playTapSound();
           setState(() {
             _currentIndex = index;
           });

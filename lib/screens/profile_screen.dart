@@ -7,11 +7,45 @@ import '../widgets/glass_button.dart';
 import '../widgets/custom_toast.dart';
 import '../providers/user_provider.dart';
 import '../providers/meal_provider.dart';
+import '../services/sound_service.dart';
 import 'statistics_screen.dart';
 import 'webview_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  bool _soundEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSoundPreference();
+  }
+
+  Future<void> _loadSoundPreference() async {
+    final soundEnabled = SoundService().soundEnabled;
+    setState(() {
+      _soundEnabled = soundEnabled;
+    });
+  }
+
+  Future<void> _toggleSound(bool value) async {
+    await SoundService().toggleSound(value);
+    setState(() {
+      _soundEnabled = value;
+    });
+    if (mounted) {
+      CustomToast.success(
+        context,
+        value ? 'Sound enabled' : 'Sound disabled',
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -559,6 +593,8 @@ class ProfileScreen extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 12),
+                    _buildSoundToggle(context),
+                    const SizedBox(height: 12),
                     _buildSettingsItem(
                       context,
                       Icons.privacy_tip_outlined,
@@ -728,6 +764,32 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSoundToggle(BuildContext context) {
+    return GlassContainer(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Icon(
+            _soundEnabled ? Icons.volume_up : Icons.volume_off,
+            color: AppTheme.textBlack,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              'Sound Effects',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+          ),
+          Switch(
+            value: _soundEnabled,
+            onChanged: _toggleSound,
+            activeColor: AppTheme.textBlack,
+          ),
+        ],
+      ),
     );
   }
 

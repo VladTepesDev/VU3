@@ -356,8 +356,24 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: stats.take(int.parse(_selectedPeriod)).map((stat) {
+        children: stats.take(int.parse(_selectedPeriod)).toList().asMap().entries.map((entry) {
+          final index = entry.key;
+          final stat = entry.value;
           final height = (stat.totalCalories / maxCalories * 120).clamp(5.0, 120.0);
+          
+          // Soft, calming colors palette
+          final colors = [
+            [const Color(0xFFB8E6D5), const Color(0xFF8FD6BD)], // Soft mint green
+            [const Color(0xFFD4B5E8), const Color(0xFFBFA2D6)], // Soft lavender
+            [const Color(0xFFFFC9B5), const Color(0xFFFFB497)], // Soft peach
+            [const Color(0xFFB5D4FF), const Color(0xFF97BFFF)], // Soft sky blue
+            [const Color(0xFFFFE5B5), const Color(0xFFFFD897)], // Soft yellow
+            [const Color(0xFFFFB5D4), const Color(0xFFFF97BF)], // Soft pink
+            [const Color(0xFFB5FFE5), const Color(0xFF97FFD8)], // Soft aqua
+          ];
+          
+          final barColors = colors[index % colors.length];
+          
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -372,10 +388,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            AppTheme.textBlack.withValues(alpha: 0.5),
-                            AppTheme.textBlack.withValues(alpha: 0.8),
-                          ],
+                          colors: barColors,
                         ),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(4),

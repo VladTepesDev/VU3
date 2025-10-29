@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../services/sound_service.dart';
 
 class GlassButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -72,12 +73,15 @@ class _GlassButtonState extends State<GlassButton> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(widget.borderRadius),
-          child: BackdropFilter(
+            child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: widget.blur, sigmaY: widget.blur),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: widget.onPressed,
+                onTap: () {
+                  SoundService().playTapSound();
+                  widget.onPressed();
+                },
                 onTapDown: (_) => setState(() => _isPressed = true),
                 onTapUp: (_) => setState(() => _isPressed = false),
                 onTapCancel: () => setState(() => _isPressed = false),
@@ -168,12 +172,15 @@ class _GlassIconButtonState extends State<GlassIconButton> {
           ],
         ),
         child: ClipOval(
-          child: BackdropFilter(
+            child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: widget.onPressed,
+                onTap: () {
+                  SoundService().playTapSound();
+                  widget.onPressed();
+                },
                 onTapDown: (_) => setState(() => _isPressed = true),
                 onTapUp: (_) => setState(() => _isPressed = false),
                 onTapCancel: () => setState(() => _isPressed = false),

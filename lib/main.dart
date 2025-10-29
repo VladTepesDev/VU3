@@ -5,6 +5,7 @@ import 'theme/app_theme.dart';
 import 'services/storage_service.dart';
 import 'services/notification_service.dart';
 import 'services/day_change_service.dart';
+import 'services/sound_service.dart';
 import 'providers/user_provider.dart';
 import 'providers/meal_provider.dart';
 import 'providers/menu_provider.dart';
@@ -30,6 +31,12 @@ void main() async {
   final notificationService = NotificationService();
   await notificationService.initialize();
   await notificationService.requestPermissions();
+  
+  // Initialize sound service
+  print('🎵 About to initialize SoundService from main.dart');
+  final soundService = SoundService();
+  await soundService.initialize();
+  print('🎵 SoundService initialization complete');
   
   runApp(const MyApp());
 }
