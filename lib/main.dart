@@ -33,10 +33,8 @@ void main() async {
   await notificationService.requestPermissions();
   
   // Initialize sound service
-  print('🎵 About to initialize SoundService from main.dart');
   final soundService = SoundService();
   await soundService.initialize();
-  print('🎵 SoundService initialization complete');
   
   runApp(const MyApp());
 }

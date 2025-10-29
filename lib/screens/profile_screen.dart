@@ -770,12 +770,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSoundToggle(BuildContext context) {
     return GlassContainer(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
           Icon(
             _soundEnabled ? Icons.volume_up : Icons.volume_off,
             color: AppTheme.textBlack,
+            size: 24,
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -784,10 +785,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
           ),
-          Switch(
-            value: _soundEnabled,
-            onChanged: _toggleSound,
-            activeColor: AppTheme.textBlack,
+          SizedBox(
+            height: 24,
+            child: Switch(
+              value: _soundEnabled,
+              onChanged: _toggleSound,
+              activeColor: AppTheme.textBlack,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
         ],
       ),
@@ -798,10 +803,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return GestureDetector(
       onTap: onTap,
       child: GlassContainer(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
-            Icon(icon, color: AppTheme.textBlack),
+            Icon(icon, color: AppTheme.textBlack, size: 24),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
@@ -812,6 +817,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Icon(
               Icons.chevron_right,
               color: AppTheme.textGray,
+              size: 24,
             ),
           ],
         ),
