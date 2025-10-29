@@ -88,122 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       child: SafeArea(
+        top: false, // Don't add top safe area since header handles it
         child: CustomScrollView(
           slivers: [
-            // App Bar
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20.0, 23.0, 20.0, 20.0),
-                child: Consumer<UserProvider>(
-                  builder: (context, userProvider, _) {
-                    final user = userProvider.userProfile;
-                    final userName = user?.name ?? 'User';
-                    
-                    return Column(
-                      children: [
-                        // Profile Image and Name
-                        Row(
-                          children: [
-                            // Profile Image
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppTheme.textBlack.withValues(alpha: 0.1),
-                                  width: 2,
-                                ),
-                              ),
-                              child: ClipOval(
-                                child: user?.profileImage != null && File(user!.profileImage!).existsSync()
-                                    ? Image.file(
-                                        File(user.profileImage!),
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Container(
-                                            decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                colors: [
-                                                  AppTheme.glassWhite.withValues(alpha: 0.5),
-                                                  AppTheme.glassGray.withValues(alpha: 0.5),
-                                                ],
-                                              ),
-                                            ),
-                                            child: Icon(
-                                              user.gender == 'male' ? Icons.male : Icons.female,
-                                              size: 30,
-                                              color: AppTheme.textBlack,
-                                            ),
-                                          );
-                                        },
-                                      )
-                                    : Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            colors: [
-                                              AppTheme.glassWhite.withValues(alpha: 0.5),
-                                              AppTheme.glassGray.withValues(alpha: 0.5),
-                                            ],
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          user?.gender == 'male' ? Icons.male : Icons.female,
-                                          size: 30,
-                                          color: AppTheme.textBlack,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            // Name and greeting
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    userName,
-                                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Welcome back!',
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: AppTheme.textBlack,
-                                        ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        // Date
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            DateFormat('EEEE, MMMM d').format(DateTime.now()),
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.textBlack,
-                                ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-            
             // Today's Summary
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  const SizedBox(height: 16),
-                  
                   // Big Bubble Container - Blue shadow, top-left positioned
                   Container(
                     decoration: BoxDecoration(

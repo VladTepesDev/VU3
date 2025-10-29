@@ -1,7 +1,11 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/sound_service.dart';
+import '../providers/user_provider.dart';
 import 'home_screen.dart';
 import 'add_meal_screen.dart';
 import 'menus_screen.dart';
@@ -37,9 +41,142 @@ class MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: false,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: Column(
+        children: [
+          // Fixed header
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppTheme.glassWhite.withValues(alpha: 0.3),
+                  AppTheme.glassGray.withValues(alpha: 0.2),
+                ],
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: AppTheme.borderWhite.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
+              ),
+            ),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top / 2,
+              left: 20,
+              right: 20,
+              bottom: 16,
+            ),
+            child: Consumer<UserProvider>(
+              builder: (context, userProvider, _) {
+                final user = userProvider.userProfile;
+                final userName = user?.name ?? 'User';
+                
+                return Column(
+                  children: [
+                    // Profile Image and Name
+                    Row(
+                      children: [
+                        // Profile Image
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppTheme.textBlack.withValues(alpha: 0.1),
+                              width: 2,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: user?.profileImage != null && File(user!.profileImage!).existsSync()
+                                ? Image.file(
+                                    File(user.profileImage!),
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppTheme.glassWhite.withValues(alpha: 0.5),
+                                              AppTheme.glassGray.withValues(alpha: 0.5),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          user.gender == 'male' ? Icons.male : Icons.female,
+                                          size: 24,
+                                          color: AppTheme.textBlack,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppTheme.glassWhite.withValues(alpha: 0.5),
+                                          AppTheme.glassGray.withValues(alpha: 0.5),
+                                        ],
+                                      ),
+                                    ),
+                                    child: Icon(
+                                      user?.gender == 'male' ? Icons.male : Icons.female,
+                                      size: 24,
+                                      color: AppTheme.textBlack,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Name and greeting
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                userName,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Welcome back!',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: AppTheme.textBlack,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Date
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        DateFormat('EEEE, MMMM d').format(DateTime.now()),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppTheme.textBlack.withValues(alpha: 0.7),
+                              fontSize: 11,
+                            ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          // Body content
+          Expanded(
+            child: IndexedStack(
+              index: _currentIndex,
+              children: _screens,
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
